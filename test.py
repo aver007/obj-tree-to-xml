@@ -1,7 +1,8 @@
 import hashlib
+import objtreetoxml
 
 
-class SampleBaseClass():
+class SampleBaseClass(objtreetoxml.ObjTreeToXML):
     def __init__(self, a, b, c):
         self.__parent = None
 
@@ -10,6 +11,8 @@ class SampleBaseClass():
         self.__c = c
 
         self.__childrens = []
+
+        super().__init__()
 
     @property
     def parent(self):
@@ -27,6 +30,7 @@ class SampleBaseClass():
     def childrens(self):
         return self.__childrens
 
+    @objtreetoxml.Prop
     @property
     def a(self):
         return self.__a
@@ -40,6 +44,7 @@ class SampleBaseClass():
         # Попробуем поработать с int
         return self.__c
 
+    @objtreetoxml.Prop
     @property
     def md5_from_a_b(self):
         return hashlib.md5((self.a + self.b).encode("UTF-8")).hexdigest()
@@ -80,7 +85,24 @@ class ClassWithTown(SampleBaseClass):
 
 
 if __name__ == "__main__":
+    """class Foo(object):
+        bar = 'spam'
+
+        def __init__(self):
+            self.zlp = 11
+            self.__pnh = 99
+
+    print(Foo().__dict__)
+
+    print(*Foo.__dict__)
+
+    exit()
+    """
+
     filename_obj_readme = ClassWithFilename("a-a_readme", "b-b_readme", 98, "Readme.txt", 123456)
+
+
+
     town_obj_kalin = ClassWithTown("a-a", "b-b", 123, "Kaliningrad", 236029)
     town_obj_moscow = ClassWithTown("a-a_moscow", "b-b", 321, "Moscow", 999999)
     filename_obj_readme.addchild(town_obj_kalin)
