@@ -14,6 +14,7 @@ class SampleBaseClass(ObjTreeToXML):
 
         super().__init__()
 
+    #@Parent
     @property
     def parent(self):
         return self.__parent
@@ -103,12 +104,13 @@ if __name__ == "__main__":
 
     filename_obj_readme = ClassWithFilename("a-a_readme", "b-b_readme", 98, "Readme.txt", 123456)
 
-
-
     town_obj_kalin = ClassWithTown("a-a", "b-b", 123, "Kaliningrad", 236029)
-    town_obj_moscow = ClassWithTown("a-a_moscow", "b-b", 321, "Moscow", 999999)
+    town_obj_moscow = ClassWithTown(56, "b-b", 321, "Moscow", 999999)
     filename_obj_readme.addchild(town_obj_kalin)
     filename_obj_readme.addchild(town_obj_moscow)
+
+    x = town_obj_moscow.a
+    print(x)
 
     base_hz = SampleBaseClass("a-a_BASE", "b-b_BASE", 1000)
     town_obj_petersburg = ClassWithTown("a-a", "b-b_piter", 123, "Saint-Petersburg", 111111)
