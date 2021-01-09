@@ -44,35 +44,33 @@ class ObjTreeToXML:
     """
     Базовый класс
     """
-    # инициализируем переменные, которые будут хранить списки на добавку в XML
-    __prop_parent = None
-    __prop_childs = []
-    __prop_properties = []
-
     def __init__(self):
+        # инициализируем переменные, которые будут хранить списки на добавку в XML
+        self.__prop_parent = None
+        self.__prop_childs = []
+        self.__prop_properties = []
 
         self.__check_props()
         self.__initialised_objtreetoxml = True
 
-    @classmethod
-    def __check_props(cls):
+    def __check_props(self):
         """
         Проходит по всем свойствам (@property) класса - потомка
         и помеченные декораторами включает в список на добавку в XML
         :return:
         """
-        for pr in cls.__dict__:
+        for pr in dir(self):
             # итерация по всем атрибутам объекта
-            ty = type(cls.__dict__[pr])
+            ty = type(getattr(self, pr))
             if ty == Prop:
                 # если текущий атрибут - декоратор, обозначающий свойство для заноса в XML - добавляем в свойства
-                cls.__prop_properties.append(pr)
+                self.__prop_properties.append(pr)
             elif ty == Parent:
                 # если текущий атрибут - декоратор, обозначающий родителя для заноса в XML - добавляем в свойства
-                cls.__prop_parent = pr
+                self.__prop_parent = pr
             elif ty == Childs:
                 # если текущий атрибут - декоратор, обозначающий детей для заноса в XML - добавляем в свойства
-                cls.__prop_childs = pr
+                self.__prop_childs = pr
 
     def generate_xml(self):
         assert self.__initialised_objtreetoxml  # Проверка была ли инициализация структур класса ObjTreeToXML

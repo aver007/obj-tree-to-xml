@@ -1,8 +1,8 @@
 import hashlib
-import objtreetoxml
+from objtreetoxml import ObjTreeToXML, Prop, Parent, Childs
 
 
-class SampleBaseClass(objtreetoxml.ObjTreeToXML):
+class SampleBaseClass(ObjTreeToXML):
     def __init__(self, a, b, c):
         self.__parent = None
 
@@ -30,7 +30,7 @@ class SampleBaseClass(objtreetoxml.ObjTreeToXML):
     def childrens(self):
         return self.__childrens
 
-    @objtreetoxml.Prop
+    @Prop
     @property
     def a(self):
         return self.__a
@@ -44,7 +44,7 @@ class SampleBaseClass(objtreetoxml.ObjTreeToXML):
         # Попробуем поработать с int
         return self.__c
 
-    @objtreetoxml.Prop
+    @Prop
     @property
     def md5_from_a_b(self):
         return hashlib.md5((self.a + self.b).encode("UTF-8")).hexdigest()
@@ -60,6 +60,7 @@ class ClassWithFilename(SampleBaseClass):
         self.__writemode = writemode
         super().__init__(a, b, c)
 
+    @Prop
     @property
     def filename(self):
         return self.__filename
@@ -75,6 +76,7 @@ class ClassWithTown(SampleBaseClass):
         self.__postcode = postcode
         super().__init__(a, b, c)
 
+    @Prop
     @property
     def town(self):
         return self.__town
