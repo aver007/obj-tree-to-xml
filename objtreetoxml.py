@@ -28,7 +28,8 @@ class Prop:
     Декоратор, обозначающий свойство для заноса в XML
     """
     def __init__(self, obj):
-        assert type(obj) == property  # Декоратор применяется только к свойствам (класс property)
+        # assert type(obj) == property  # Декоратор применяется только к свойствам (класс property)
+        assert isinstance(obj, property)  # Декоратор применяется только к свойствам (класс property)
 
         self.__prop = obj
         pass
