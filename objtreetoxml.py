@@ -37,7 +37,7 @@ class Prop:
         return getattr(self.__prop, attr)  # Возвращение свойств обернутого объекта
 
     def __repr__(self):
-        return self.__prop
+        return str(self.__prop)
 
 
 class ObjTreeToXML:
