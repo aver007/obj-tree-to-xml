@@ -12,7 +12,7 @@ class ObjTreeToXML:
     """
     __props_for_xml = set()
     __parent_for_xml = None
-    __childs_for_xml = None
+    __childs_for_xml = set()
 
     @staticmethod
     def property(wrapped):
@@ -37,7 +37,7 @@ class ObjTreeToXML:
         """
         # Основной функциорнал по учету свойства
         assert isinstance(wrapped, property)  # Декоратор применяется только к свойствам (класс property)
-        ObjTreeToXML.__parent_for_xml = wrapped  # todo !! добавить проверку на единственность для данного класса
+        ObjTreeToXML.__parent_for_xml = wrapped  # todo !! добавить проверку на единственность для ДАННОГО класса
 
         # Возвращает тоже свойство (ничего не меняет)
         return wrapped
@@ -51,7 +51,7 @@ class ObjTreeToXML:
         """
         # Основной функциорнал по учету свойства
         assert isinstance(wrapped, property)  # Декоратор применяется только к свойствам (класс property)
-        ObjTreeToXML.__childs_for_xml = wrapped  # todo !! добавить проверку на единственность для данного класса
+        ObjTreeToXML.__childs_for_xml.add(wrapped)  # todo !! добавить проверку на единственность для ДАННОГО класса
 
         # Возвращает тоже свойство (ничего не меняет)
         return wrapped
@@ -61,20 +61,24 @@ class ObjTreeToXML:
         xml_of_this_obj = xml_ET.Element(self.__class__.__name__)
 
         # enumerate and adding properties
-        for prop_name in dir(self.__class__):             # Проходим по именам атрибутов текущего объекта (из класса)
-            prop = getattr(self.__class__, prop_name)     # получаем этот атрибут (property берется только из класса)
-            if isinstance(prop, property):                # проверяем чтобы он был свойством (property)
-                if prop in ObjTreeToXML.__props_for_xml:  # если это свойство в списке для внесения в xml
-                    name = prop_name
-                    value = prop.fget(self)               # извлекаем значение атрибута объекта
-                    print(name, value)
+        for obj_prop_name in dir(self.__class__):           # Проходим по именам атрибутов текущего объекта (из класса)
+            prop = getattr(self.__class__, obj_prop_name)   # получаем очер. атрибут (property берется только из класса)
+            if isinstance(prop, property):                  # проверяем чтобы он был свойством (property)
+                if prop in ObjTreeToXML.__props_for_xml:    # если это свойство в списке для внесения в xml
+                    name = obj_prop_name
+                    value = prop.fget(self)                 # извлекаем значение атрибута объекта
+                    print("property: ", name, value)        # сохраняем
 
         # add data about parent obj
 
         # enumerate childs
-        childs = ObjTreeToXML.__childs_for_xml.fget(self)
-        for child_obj in ObjTreeToXML.__childs_for_xml:
-            xml_of_this_obj.append(child_obj.xml_element())
+        for obj_prop_name in dir(self.__class__):           # Проходим по именам атрибутов текущего объекта (из класса)
+            prop = getattr(self.__class__, obj_prop_name)   # получаем очер. атрибут (property берется только из класса)
+            if isinstance(prop, property):                  # проверяем чтобы он был свойством (property)
+                if prop in ObjTreeToXML.__childs_for_xml:   # если это свойство в списке свойст-ссылок на детей
+                    name = obj_prop_name
+                    value = prop.fget(self)                 # извлекаем значение атрибута объекта
+                    print("property: ", name, value)        # сохраняем
 
         return xml_of_this_obj
 
