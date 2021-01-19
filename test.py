@@ -14,7 +14,7 @@ class SampleBaseClass(ObjTreeToXML):
 
         super().__init__()
 
-    #@ObjTreeToXML.prop_parent_uid
+    @ObjTreeToXML.prop_parent
     @property
     def parent(self):
         return self.__parent

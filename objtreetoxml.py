@@ -11,9 +11,9 @@ class ObjTreeToXML:
     Базовый класс
     """
     __props_for_xml = set()
-    __parent_for_xml = None
+    __parent_for_xml = set()
     __childs_for_xml = set()
-    __uids_for_xml = set()
+    __uid_for_xml = set()
 
     @staticmethod
     def property(wrapped):
@@ -30,15 +30,18 @@ class ObjTreeToXML:
         return wrapped
 
     @staticmethod
-    def prop_parent_uid(wrapped):
+    def prop_parent(wrapped):
         """
-        Декоратор определяющий свойство, определяющее родительскую ветку (оно обязательно должно быть @property)
+          Декоратор определяющий свойство, определяющее родительскую ветку (оно обязательно должно быть @property)
+          В xml добавляется не сам объект - parent, а только его UID, если есть !!!
+          Свойство добавлено для удобства последующей обработки полученного xml так как в структуре xml и так видно кто
+        чей родитель.
         :param wrapped: Декорируемый параметр
         :return: Декорируемый параметр
         """
         # Основной функциорнал по учету свойства
         assert isinstance(wrapped, property)  # Декоратор применяется только к свойствам (класс property)
-        ObjTreeToXML.__parent_for_xml = wrapped  # todo !! добавить проверку на единственность для ДАННОГО класса
+        ObjTreeToXML.__parent_for_xml.add(wrapped)  # todo !! добавить проверку на единственность для ДАННОГО класса
 
         # Возвращает тоже свойство (ничего не меняет)
         return wrapped
@@ -52,7 +55,7 @@ class ObjTreeToXML:
         """
         # Основной функциорнал по учету свойства
         assert isinstance(wrapped, property)  # Декоратор применяется только к свойствам (класс property)
-        ObjTreeToXML.__uids_for_xml.add(wrapped)  # todo !! добавить проверку на единственность для ДАННОГО класса
+        ObjTreeToXML.__uid_for_xml.add(wrapped)  # todo !! добавить проверку на единственность для ДАННОГО класса
 
         # Возвращает тоже свойство (ничего не меняет)
         return wrapped
@@ -71,20 +74,48 @@ class ObjTreeToXML:
         # Возвращает тоже свойство (ничего не меняет)
         return wrapped
 
+    def __iter_props(self):
+        """
+        Итератор по свойствам (@property) класса объекта
+        :return: tuple(Очередной дескриптор класса объекта,  имя атрибута)
+        """
+        for class_attr_name in dir(self.__class__):          # Проходим по именам атрибутов текущего объекта (из класса)
+            prop_descriptor = getattr(self.__class__, class_attr_name)  # получаем очер. атрибут (property берется только из класса)
+            if isinstance(prop_descriptor, property):                   # проверяем чтобы он был свойством (property)
+                yield prop_descriptor, class_attr_name                  # возвращаем дескриптор св-ва и имя атрибута
+
     def xml_element(self):
         # todo !!!! Может сделать скрытым???  как def __xml_element(self):
         xml_of_this_obj = xml_ET.Element("Object")  # Имя раздела в xml определяется по имени класса
         xml_of_this_obj.set("Class", self.__class__.__name__)  # todo !! Только так??? со str()???
 
-        # add uid
+        # add UID
+        for prop, attr_name in ObjTreeToXML.__iter_props(self):  # Итерируем по свойствам (property) объекта
+            if prop in ObjTreeToXML.__uid_for_xml:  # если это свойство в списке UID
+                attr_value = prop.fget(self)  # извлекаем значение атрибута объекта
+                print("UID:", attr_name, attr_value)  # сохраняем
+                xml_of_this_obj.set("UID", str(attr_value))  # todo !! Только так??? со str()???
+        """
         for obj_prop_name in dir(self.__class__):           # Проходим по именам атрибутов текущего объекта (из класса)
             prop = getattr(self.__class__, obj_prop_name)   # получаем очер. атрибут (property берется только из класса)
             if isinstance(prop, property):                  # проверяем чтобы он был свойством (property)
-                if prop in ObjTreeToXML.__uids_for_xml:     # если это свойство в списке UID
-                    attr_name = obj_prop_name
-                    attr_value = prop.fget(self)                  # извлекаем значение атрибута объекта
-                    print("UID:", attr_name, attr_value)          # сохраняем
-                    xml_of_this_obj.set("UID", str(attr_value))   # todo !! Только так??? со str()???
+        """
+
+        # add data about parent obj UID
+        for obj_prop_name in dir(self.__class__):          # Проходим по именам атрибутов текущего объекта (из класса)
+            prop = getattr(self.__class__, obj_prop_name)  # получаем очер. атрибут (property берется только из класса)
+            if isinstance(prop, property):                 # проверяем чтобы он был свойством (property)
+
+                """
+                for par_descriptor in ObjTreeToXML.__parent_for_xml:
+                    val = par_descriptor.fget(self)
+                if prop in ObjTreeToXML.__parent_for_xml:  # если это свойство в списке parents
+                    attr_name = obj_prop_name              # todo !! Убрать (не используется)
+                    attr_value = prop.fget(self)           # извлекаем значение атрибута объекта (ссылку на родителя)
+                    parent_UID = 00
+                    print("parent UID:", attr_name, attr_value)   # сохраняем
+                    xml_of_this_obj.set("parent UID", str(attr_value))  # todo !! Только так??? со str()???
+                """
 
         # enumerate and adding properties
         xml_obj_properties = xml_ET.SubElement(xml_of_this_obj, "properties")
@@ -98,11 +129,6 @@ class ObjTreeToXML:
                     sub_element = xml_ET.SubElement(xml_obj_properties, attr_name)
                     sub_element.text = str(attr_value)
                     sub_element.set('type', str(type(attr_value)))
-
-                    #xml_of_this_obj.set(attr_name, str(attr_value))   # todo !! Только так??? со str()???
-
-        # add data  about parent obj
-        # todo !! (mb only UID)
 
         # enumerate childs
         for obj_prop_name in dir(self.__class__):           # Проходим по именам атрибутов текущего объекта (из класса)
