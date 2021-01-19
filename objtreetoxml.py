@@ -93,6 +93,7 @@ class ObjTreeToXML:
             if prop in ObjTreeToXML.__uid_for_xml:               # если это свойство в списке UID
                 attr_value = prop.fget(self)                     # извлекаем значение атрибута объекта
                 print("UID:", attr_name, attr_value)             # сохраняем
+                xml_of_this_obj.set("UID_attr_name", str(attr_name))  # todo !! Только так??? со str()???
                 xml_of_this_obj.set("UID", str(attr_value))  # todo !! Только так??? со str()???
 
         # add data about parent obj UID
