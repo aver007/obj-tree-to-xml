@@ -76,13 +76,14 @@ class ObjTreeToXML:
             prop = getattr(self.__class__, obj_prop_name)   # получаем очер. атрибут (property берется только из класса)
             if isinstance(prop, property):                  # проверяем чтобы он был свойством (property)
                 if prop in ObjTreeToXML.__childs_for_xml:   # если это свойство в списке свойст-ссылок на детей
-                    name = obj_prop_name
-                    value = prop.fget(self)                 # извлекаем значение атрибута объекта
-                    print("property: ", name, value)        # сохраняем
+                    child_list = prop.fget(self)            # из свойства извлекаем атрибут - список на объекты детей
+                    for child in child_list:
+                        print("child:", child)
+                        xml_of_this_obj.append(child.xml_element()) # проходим по каждому ребенку рекурсивно
 
         return xml_of_this_obj
 
     def get_xml(self):
-        return xml_ET.ElementTree(self.xml_element())
+        return xml_ET.tostring(self.xml_element(), encoding="unicode")
 
 

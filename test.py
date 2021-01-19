@@ -105,8 +105,6 @@ if __name__ == "__main__":
 
     filename_obj_readme = ClassWithFilename("a-a_readme", "b-b_readme", 98, "Readme.txt", 123456)
 
-
-
     town_obj_kalin = ClassWithTown("a-a", "b-b", 123, "Kaliningrad", 236029)
     town_obj_moscow = ClassWithTown("a-a_moscow", "b-b", 321, "Moscow", 999999)
     filename_obj_readme.addchild(town_obj_kalin)
@@ -117,8 +115,13 @@ if __name__ == "__main__":
     base_hz.addchild(town_obj_petersburg)
     base_hz.addchild(filename_obj_readme)
 
-    print(base_hz.get_xml())
-    print("zlp")
+    xml_data = base_hz.get_xml()
+
+    print(xml_data)
+
+    with open('rez.xml', 'w') as rez:
+        rez.write(xml_data)
+
 
 
 

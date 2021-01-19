@@ -1,5 +1,6 @@
 .idea/
 example_xml/
+rez.xml
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
