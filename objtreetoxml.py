@@ -73,13 +73,13 @@ class ObjTreeToXML:
 
     def xml_element(self):
         # todo !!!! Может сделать скрытым???  как def __xml_element(self):
-        xml_of_this_obj = xml_ET.Element(self.__class__.__name__)
+        xml_of_this_obj = xml_ET.Element(self.__class__.__name__)  # Имя раздела в xml определяется по имени класса
 
         # add uid
         for obj_prop_name in dir(self.__class__):           # Проходим по именам атрибутов текущего объекта (из класса)
             prop = getattr(self.__class__, obj_prop_name)   # получаем очер. атрибут (property берется только из класса)
             if isinstance(prop, property):                  # проверяем чтобы он был свойством (property)
-                if prop in ObjTreeToXML.__uids_for_xml:    # если это свойство в списке UID
+                if prop in ObjTreeToXML.__uids_for_xml:     # если это свойство в списке UID
                     attr_name = obj_prop_name
                     attr_value = prop.fget(self)                  # извлекаем значение атрибута объекта
                     print("UID:", attr_name, attr_value)          # сохраняем
@@ -93,7 +93,11 @@ class ObjTreeToXML:
                     attr_name = obj_prop_name
                     attr_value = prop.fget(self)                      # извлекаем значение атрибута объекта
                     print("property: ", attr_name, attr_value)        # сохраняем
-                    xml_of_this_obj.set(attr_name, str(attr_value))   # todo !! Только так??? со str()???
+                    sub_element = xml_ET.SubElement(xml_of_this_obj, attr_name)
+                    sub_element.text = str(attr_value)
+                    sub_element.set('type', str(type(attr_value)))
+
+                    #xml_of_this_obj.set(attr_name, str(attr_value))   # todo !! Только так??? со str()???
 
         # add data  about parent obj
         # todo !! (mb only UID)
