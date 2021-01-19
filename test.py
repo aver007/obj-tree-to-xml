@@ -47,6 +47,7 @@ class SampleBaseClass(ObjTreeToXML):
         # Попробуем поработать с int
         return self.__c
 
+    @ObjTreeToXML.prop_uid
     @ObjTreeToXML.property
     @property
     def md5_from_a_b(self):
