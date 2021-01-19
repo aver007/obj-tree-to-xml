@@ -4,6 +4,13 @@
 
 # todo !!! Для всех списков параметров проверить чтобы они не повторялись (чтобы дважды не совать в xml)
 
+# todo !!!     Если в атрибут сначала записывался дескриптор декоратора @proiperty а за ним @"property.setter"
+# todo !!! то атрибуту уже передается новый дескриптор полученный от @"property.setter" а старый затирается
+# todo !!! и его старый вариант уже не доступен !!!
+# todo !!! и его старый вариант уже не доступен (на его месте уже новый объект дескриптора!!!)
+# todo !!! ПОЭТОМУ или переделывать под сохранение в атрибутах моих дескрипторов (переделанных из @property)
+# todo !!! или искать другой вариант ((( или @"property.setter" тоже оборачивать в @ObjTreeToXML.property
+
 import xml.etree.ElementTree as xml_ET
 
 class ObjTreeToXML:
@@ -91,7 +98,8 @@ class ObjTreeToXML:
         # add UID
         for prop, attr_name in ObjTreeToXML.__iter_props(self):  # Итерируем по свойствам (property) объекта
             if prop in ObjTreeToXML.__uid_for_xml:               # если это свойство в списке UID
-                attr_value = prop.fget(self)                     # извлекаем значение атрибута объекта
+                uid_descriptor = prop
+                attr_value = uid_descriptor.fget(self)                     # извлекаем значение атрибута объекта
                 print("UID:", attr_name, attr_value)             # сохраняем
                 xml_of_this_obj.set("UID_attr_name", str(attr_name))  # todo !! Только так??? со str()???
                 xml_of_this_obj.set("UID", str(attr_value))  # todo !! Только так??? со str()???
@@ -99,24 +107,13 @@ class ObjTreeToXML:
         # add data about parent obj UID
         for prop, attr_name in ObjTreeToXML.__iter_props(self):  # Итерируем по свойствам (property) объекта
             if prop in ObjTreeToXML.__parent_for_xml:            # если это свойство в списке parents
-                print(prop)
-
-        """
-        # add data about parent obj UID
-        for obj_prop_name in dir(self.__class__):          # Проходим по именам атрибутов текущего объекта (из класса)
-            prop = getattr(self.__class__, obj_prop_name)  # получаем очер. атрибут (property берется только из класса)
-            if isinstance(prop, property):                 # проверяем чтобы он был свойством (property)
-
-                
-                for par_descriptor in ObjTreeToXML.__parent_for_xml:
-                    val = par_descriptor.fget(self)
-                if prop in ObjTreeToXML.__parent_for_xml:  # если это свойство в списке parents
-                    attr_name = obj_prop_name              # todo !! Убрать (не используется)
-                    attr_value = prop.fget(self)           # извлекаем значение атрибута объекта (ссылку на родителя)
-                    parent_UID = 00
-                    print("parent UID:", attr_name, attr_value)   # сохраняем
-                    xml_of_this_obj.set("parent UID", str(attr_value))  # todo !! Только так??? со str()???
-        """
+                parent = prop.fget(self)
+                if not parent:
+                    break
+                parent_uid = uid_descriptor.fget(parent)   # Используем полученный ранее дескриптор для UID объектов
+                                                            # для получения UID родителя
+                print("parent_UID:", parent)
+                xml_of_this_obj.set("parent", str(parent_uid))
 
         # enumerate and adding properties
         xml_obj_properties = xml_ET.SubElement(xml_of_this_obj, "properties")

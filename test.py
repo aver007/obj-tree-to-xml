@@ -14,11 +14,11 @@ class SampleBaseClass(ObjTreeToXML):
 
         super().__init__()
 
-    @ObjTreeToXML.prop_parent
     @property
     def parent(self):
         return self.__parent
 
+    @ObjTreeToXML.prop_parent
     @parent.setter
     def parent(self, value):
         self.__parent = value
@@ -105,17 +105,17 @@ if __name__ == "__main__":
     exit()
     """
 
-    #filename_obj_readme = ClassWithFilename("a-a_readme", "b-b_readme", 98, "Readme.txt", 123456)
+    filename_obj_readme = ClassWithFilename("a-a_readme", "b-b_readme", 98, "Readme.txt", 123456)
 
-    #town_obj_kalin = ClassWithTown("a-a", "b-b", 123, "Kaliningrad", 236029)
-    #town_obj_moscow = ClassWithTown("a-a_moscow", "b-b", 321, "Moscow", 999999)
-    #filename_obj_readme.addchild(town_obj_kalin)
-    #filename_obj_readme.addchild(town_obj_moscow)
+    town_obj_kalin = ClassWithTown("a-a", "b-b", 123, "Kaliningrad", 236029)
+    town_obj_moscow = ClassWithTown("a-a_moscow", "b-b", 321, "Moscow", 999999)
+    filename_obj_readme.addchild(town_obj_kalin)
+    filename_obj_readme.addchild(town_obj_moscow)
 
     base_hz = SampleBaseClass("a-a_BASE", "b-b_BASE", 1000)
-    #town_obj_petersburg = ClassWithTown("a-a", "b-b_piter", 123, "Saint-Petersburg", 111111)
-    #base_hz.addchild(town_obj_petersburg)
-    #base_hz.addchild(filename_obj_readme)
+    town_obj_petersburg = ClassWithTown("a-a", "b-b_piter", 123, "Saint-Petersburg", 111111)
+    base_hz.addchild(town_obj_petersburg)
+    base_hz.addchild(filename_obj_readme)
 
     xml_data = base_hz.get_xml()
 
