@@ -10,7 +10,7 @@ class SampleBaseClass(ObjTreeToXML):
         self.__b = b
         self.__c = c
 
-        self.__childrens = []
+        self.__childs = []
 
         super().__init__()
 
@@ -24,13 +24,13 @@ class SampleBaseClass(ObjTreeToXML):
         self.__parent = value
 
     def addchild(self, child):
-        self.__childrens.append(child)
+        self.__childs.append(child)
         child.__parent = self
 
-    #@ObjTreeToXML.prop_childs
+    @ObjTreeToXML.prop_childs
     @property
-    def childrens(self):
-        return self.__childrens
+    def childs(self):
+        return self.__childs
 
     @ObjTreeToXML.property
     @property

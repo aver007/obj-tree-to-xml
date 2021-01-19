@@ -61,20 +61,19 @@ class ObjTreeToXML:
         xml_of_this_obj = xml_ET.Element(self.__class__.__name__)
 
         # enumerate and adding properties
-        xmlprops = ObjTreeToXML.__props_for_xml
-        for prop_name in dir(self.__class__):
-            prop = getattr(self.__class__, prop_name)
-            if isinstance(prop, property):
-                if prop in xmlprops:   # todo !! НЕ РАБОТАЕТ !!
-                    print(prop)
-
+        for prop_name in dir(self.__class__):             # Проходим по именам атрибутов текущего объекта
+            prop = getattr(self.__class__, prop_name)     # получаем этот атрибут
+            if isinstance(prop, property):                # проверяем чтобы он был свойством (property)
+                if prop in ObjTreeToXML.__props_for_xml:  # если это свойство в списке для внесения в xml
+                    name = prop_name
+                    value = prop.fget(self)
+                    print(name, value)
 
         # add data about parent obj
 
-
-
         # enumerate childs
-        for child_obj in ObjTreeToXML.__childs_for_xml
+        childs = ObjTreeToXML.__childs_for_xml.fget(self)
+        for child_obj in ObjTreeToXML.__childs_for_xml:
             xml_of_this_obj.append(child_obj.xml_element())
 
         return xml_of_this_obj
