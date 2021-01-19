@@ -77,15 +77,14 @@ class ObjTreeToXML:
     def __iter_props(self):
         """
         Итератор по свойствам (@property) класса объекта
-        :return: tuple(Очередной дескриптор класса объекта,  имя атрибута)
+        :return: tuple(Очередной дескриптор класса объекта, имя атрибута)
         """
         for class_attr_name in dir(self.__class__):          # Проходим по именам атрибутов текущего объекта (из класса)
             prop_descriptor = getattr(self.__class__, class_attr_name)  # получаем очер. атрибут (property берется только из класса)
             if isinstance(prop_descriptor, property):                   # проверяем чтобы он был свойством (property)
                 yield prop_descriptor, class_attr_name                  # возвращаем дескриптор св-ва и имя атрибута
 
-    def xml_element(self):
-        # todo !!!! Может сделать скрытым???  как def __xml_element(self):
+    def __xml_element(self):
         xml_of_this_obj = xml_ET.Element("Object")  # Имя раздела в xml определяется по имени класса
         xml_of_this_obj.set("Class", self.__class__.__name__)  # todo !! Только так??? со str()???
 
@@ -95,6 +94,11 @@ class ObjTreeToXML:
                 attr_value = prop.fget(self)                     # извлекаем значение атрибута объекта
                 print("UID:", attr_name, attr_value)             # сохраняем
                 xml_of_this_obj.set("UID", str(attr_value))  # todo !! Только так??? со str()???
+
+        # add data about parent obj UID
+        for prop, attr_name in ObjTreeToXML.__iter_props(self):  # Итерируем по свойствам (property) объекта
+            if prop in ObjTreeToXML.__parent_for_xml:            # если это свойство в списке parents
+                print(prop)
 
         """
         # add data about parent obj UID
@@ -129,12 +133,12 @@ class ObjTreeToXML:
                 child_list = prop.fget(self)                     # из свойства извлекаем список на объекты детей
                 for child in child_list:
                     print("child:", child)
-                    xml_of_this_obj.append(child.xml_element())  # проходим по каждому ребенку рекурсивно
+                    xml_of_this_obj.append(child.__xml_element())  # проходим по каждому ребенку рекурсивно
 
         return xml_of_this_obj
 
     def get_xml(self):
-        xml_elem = self.xml_element()
+        xml_elem = self.__xml_element()
         return xml_ET.tostring(xml_elem, encoding="unicode")
 
 
