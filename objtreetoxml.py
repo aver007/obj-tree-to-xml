@@ -73,7 +73,8 @@ class ObjTreeToXML:
 
     def xml_element(self):
         # todo !!!! Может сделать скрытым???  как def __xml_element(self):
-        xml_of_this_obj = xml_ET.Element(self.__class__.__name__)  # Имя раздела в xml определяется по имени класса
+        xml_of_this_obj = xml_ET.Element("Object")  # Имя раздела в xml определяется по имени класса
+        xml_of_this_obj.set("Class", self.__class__.__name__)  # todo !! Только так??? со str()???
 
         # add uid
         for obj_prop_name in dir(self.__class__):           # Проходим по именам атрибутов текущего объекта (из класса)
@@ -86,6 +87,7 @@ class ObjTreeToXML:
                     xml_of_this_obj.set("UID", str(attr_value))   # todo !! Только так??? со str()???
 
         # enumerate and adding properties
+        xml_obj_properties = xml_ET.SubElement(xml_of_this_obj, "properties")
         for obj_prop_name in dir(self.__class__):           # Проходим по именам атрибутов текущего объекта (из класса)
             prop = getattr(self.__class__, obj_prop_name)   # получаем очер. атрибут (property берется только из класса)
             if isinstance(prop, property):                  # проверяем чтобы он был свойством (property)
@@ -93,7 +95,7 @@ class ObjTreeToXML:
                     attr_name = obj_prop_name
                     attr_value = prop.fget(self)                      # извлекаем значение атрибута объекта
                     print("property: ", attr_name, attr_value)        # сохраняем
-                    sub_element = xml_ET.SubElement(xml_of_this_obj, attr_name)
+                    sub_element = xml_ET.SubElement(xml_obj_properties, attr_name)
                     sub_element.text = str(attr_value)
                     sub_element.set('type', str(type(attr_value)))
 
