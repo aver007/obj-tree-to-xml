@@ -54,6 +54,8 @@ class ObjTreeToXML:
         # Возвращает тоже свойство (ничего не меняет)
         return wrapped
 
+    # todo !!! Сделать @property_serialized (свойства, которые нужно сериализовать)
+
     @staticmethod
     def prop_parent(wrapped):
         """
