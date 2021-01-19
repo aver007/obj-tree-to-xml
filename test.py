@@ -1,5 +1,5 @@
 import hashlib
-from objtreetoxml import ObjTreeToXML, Prop, Parent, Childs
+from objtreetoxml import ObjTreeToXML
 
 
 class SampleBaseClass(ObjTreeToXML):
@@ -14,6 +14,7 @@ class SampleBaseClass(ObjTreeToXML):
 
         super().__init__()
 
+    #@ObjTreeToXML.prop_parent_uid
     @property
     def parent(self):
         return self.__parent
@@ -26,11 +27,12 @@ class SampleBaseClass(ObjTreeToXML):
         self.__childrens.append(child)
         child.__parent = self
 
+    #@ObjTreeToXML.prop_childs
     @property
     def childrens(self):
         return self.__childrens
 
-    @Prop
+    @ObjTreeToXML.property
     @property
     def a(self):
         return self.__a
@@ -44,7 +46,7 @@ class SampleBaseClass(ObjTreeToXML):
         # Попробуем поработать с int
         return self.__c
 
-    @Prop
+    @ObjTreeToXML.property
     @property
     def md5_from_a_b(self):
         return hashlib.md5((self.a + self.b).encode("UTF-8")).hexdigest()
@@ -60,7 +62,7 @@ class ClassWithFilename(SampleBaseClass):
         self.__writemode = writemode
         super().__init__(a, b, c)
 
-    @Prop
+    @ObjTreeToXML.property
     @property
     def filename(self):
         return self.__filename
@@ -76,7 +78,7 @@ class ClassWithTown(SampleBaseClass):
         self.__postcode = postcode
         super().__init__(a, b, c)
 
-    @Prop
+    @ObjTreeToXML.property
     @property
     def town(self):
         return self.__town
@@ -115,7 +117,8 @@ if __name__ == "__main__":
     base_hz.addchild(town_obj_petersburg)
     base_hz.addchild(filename_obj_readme)
 
-    print(base_hz)
+    print(base_hz.get_xml())
+    print("zlp")
 
 
 
