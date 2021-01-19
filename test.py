@@ -41,6 +41,7 @@ class SampleBaseClass(ObjTreeToXML):
     def b(self):
         return self.__b
 
+    #@ObjTreeToXML.property
     @property
     def c(self):
         # Попробуем поработать с int

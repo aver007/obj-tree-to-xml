@@ -61,15 +61,18 @@ class ObjTreeToXML:
         xml_of_this_obj = xml_ET.Element(self.__class__.__name__)
 
         # enumerate and adding properties
+        attributes = {}
         for obj_prop_name in dir(self.__class__):           # Проходим по именам атрибутов текущего объекта (из класса)
             prop = getattr(self.__class__, obj_prop_name)   # получаем очер. атрибут (property берется только из класса)
             if isinstance(prop, property):                  # проверяем чтобы он был свойством (property)
                 if prop in ObjTreeToXML.__props_for_xml:    # если это свойство в списке для внесения в xml
-                    name = obj_prop_name
-                    value = prop.fget(self)                 # извлекаем значение атрибута объекта
-                    print("property: ", name, value)        # сохраняем
+                    attr_name = obj_prop_name
+                    attr_value = prop.fget(self)                 # извлекаем значение атрибута объекта
+                    print("property: ", attr_name, attr_value)        # сохраняем
+                    xml_of_this_obj.set(attr_name, attr_value)
 
-        # add data about parent obj
+        # add data  about parent obj
+        # todo !! (mb only UID)
 
         # enumerate childs
         for obj_prop_name in dir(self.__class__):           # Проходим по именам атрибутов текущего объекта (из класса)
@@ -79,11 +82,12 @@ class ObjTreeToXML:
                     child_list = prop.fget(self)            # из свойства извлекаем атрибут - список на объекты детей
                     for child in child_list:
                         print("child:", child)
-                        xml_of_this_obj.append(child.xml_element()) # проходим по каждому ребенку рекурсивно
+                        xml_of_this_obj.append(child.xml_element())  # проходим по каждому ребенку рекурсивно
 
         return xml_of_this_obj
 
     def get_xml(self):
-        return xml_ET.tostring(self.xml_element(), encoding="unicode")
+        xml_elem = self.xml_element()
+        return xml_ET.tostring(xml_elem, encoding="unicode")
 
 
