@@ -67,9 +67,9 @@ class ObjTreeToXML:
             if isinstance(prop, property):                  # проверяем чтобы он был свойством (property)
                 if prop in ObjTreeToXML.__props_for_xml:    # если это свойство в списке для внесения в xml
                     attr_name = obj_prop_name
-                    attr_value = prop.fget(self)                 # извлекаем значение атрибута объекта
+                    attr_value = prop.fget(self)                      # извлекаем значение атрибута объекта
                     print("property: ", attr_name, attr_value)        # сохраняем
-                    xml_of_this_obj.set(attr_name, attr_value)
+                    xml_of_this_obj.set(attr_name, str(attr_value))   # todo !! Только так??? со str()???
 
         # add data  about parent obj
         # todo !! (mb only UID)
