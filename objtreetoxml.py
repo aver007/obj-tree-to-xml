@@ -91,22 +91,18 @@ class ObjTreeToXML:
 
         # add UID
         for prop, attr_name in ObjTreeToXML.__iter_props(self):  # Итерируем по свойствам (property) объекта
-            if prop in ObjTreeToXML.__uid_for_xml:  # если это свойство в списке UID
-                attr_value = prop.fget(self)  # извлекаем значение атрибута объекта
-                print("UID:", attr_name, attr_value)  # сохраняем
+            if prop in ObjTreeToXML.__uid_for_xml:               # если это свойство в списке UID
+                attr_value = prop.fget(self)                     # извлекаем значение атрибута объекта
+                print("UID:", attr_name, attr_value)             # сохраняем
                 xml_of_this_obj.set("UID", str(attr_value))  # todo !! Только так??? со str()???
-        """
-        for obj_prop_name in dir(self.__class__):           # Проходим по именам атрибутов текущего объекта (из класса)
-            prop = getattr(self.__class__, obj_prop_name)   # получаем очер. атрибут (property берется только из класса)
-            if isinstance(prop, property):                  # проверяем чтобы он был свойством (property)
-        """
 
+        """
         # add data about parent obj UID
         for obj_prop_name in dir(self.__class__):          # Проходим по именам атрибутов текущего объекта (из класса)
             prop = getattr(self.__class__, obj_prop_name)  # получаем очер. атрибут (property берется только из класса)
             if isinstance(prop, property):                 # проверяем чтобы он был свойством (property)
 
-                """
+                
                 for par_descriptor in ObjTreeToXML.__parent_for_xml:
                     val = par_descriptor.fget(self)
                 if prop in ObjTreeToXML.__parent_for_xml:  # если это свойство в списке parents
@@ -115,30 +111,25 @@ class ObjTreeToXML:
                     parent_UID = 00
                     print("parent UID:", attr_name, attr_value)   # сохраняем
                     xml_of_this_obj.set("parent UID", str(attr_value))  # todo !! Только так??? со str()???
-                """
+        """
 
         # enumerate and adding properties
         xml_obj_properties = xml_ET.SubElement(xml_of_this_obj, "properties")
-        for obj_prop_name in dir(self.__class__):           # Проходим по именам атрибутов текущего объекта (из класса)
-            prop = getattr(self.__class__, obj_prop_name)   # получаем очер. атрибут (property берется только из класса)
-            if isinstance(prop, property):                  # проверяем чтобы он был свойством (property)
-                if prop in ObjTreeToXML.__props_for_xml:    # если это свойство в списке для внесения в xml
-                    attr_name = obj_prop_name
-                    attr_value = prop.fget(self)                      # извлекаем значение атрибута объекта
-                    print("property: ", attr_name, attr_value)        # сохраняем
-                    sub_element = xml_ET.SubElement(xml_obj_properties, attr_name)
-                    sub_element.text = str(attr_value)
-                    sub_element.set('type', str(type(attr_value)))
+        for prop, attr_name in ObjTreeToXML.__iter_props(self):     # Итерируем по свойствам (property) объекта
+            if prop in ObjTreeToXML.__props_for_xml:                # если это свойство в списке для внесения в xml
+                attr_value = prop.fget(self)                        # извлекаем значение атрибута объекта
+                print("property: ", attr_name, attr_value)          # сохраняем
+                sub_element = xml_ET.SubElement(xml_obj_properties, attr_name)
+                sub_element.text = str(attr_value)
+                sub_element.set('type', str(type(attr_value)))
 
         # enumerate childs
-        for obj_prop_name in dir(self.__class__):           # Проходим по именам атрибутов текущего объекта (из класса)
-            prop = getattr(self.__class__, obj_prop_name)   # получаем очер. атрибут (property берется только из класса)
-            if isinstance(prop, property):                  # проверяем чтобы он был свойством (property)
-                if prop in ObjTreeToXML.__childs_for_xml:   # если это свойство в списке свойст-ссылок на детей
-                    child_list = prop.fget(self)            # из свойства извлекаем атрибут - список на объекты детей
-                    for child in child_list:
-                        print("child:", child)
-                        xml_of_this_obj.append(child.xml_element())  # проходим по каждому ребенку рекурсивно
+        for prop, attr_name in ObjTreeToXML.__iter_props(self):  # Итерируем по свойствам (property) объекта
+            if prop in ObjTreeToXML.__childs_for_xml:            # если это свойство в списке свойст-ссылок на детей
+                child_list = prop.fget(self)                     # из свойства извлекаем список на объекты детей
+                for child in child_list:
+                    print("child:", child)
+                    xml_of_this_obj.append(child.xml_element())  # проходим по каждому ребенку рекурсивно
 
         return xml_of_this_obj
 
