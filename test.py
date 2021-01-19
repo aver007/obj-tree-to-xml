@@ -89,6 +89,16 @@ class ClassWithTown(SampleBaseClass):
     def postcode(self):
         return self.__postcode
 
+    @ObjTreeToXML.property_b64
+    @property
+    def binarydata(self):
+        return bytes.fromhex("12abcdef")
+
+    @ObjTreeToXML.property
+    @property
+    def listdata(self):
+        return [123, 456, 789, bytes.fromhex("12abcdef")]
+
 
 if __name__ == "__main__":
     """class Foo(object):
