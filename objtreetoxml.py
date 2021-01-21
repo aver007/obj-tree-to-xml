@@ -1,6 +1,4 @@
 #!python
-# todo !!! Проверить работу при применении к нескольким разным классам, в том числе наследующим друг
-# todo     друга (нет ли коллизий списков параметров?)
 
 # todo !!! Для всех списков параметров проверить чтобы они не повторялись (чтобы дважды не совать в xml)
 
@@ -20,7 +18,15 @@ import base64, pickle
 
 class ObjTreeToXML:
     """
-    Базовый класс
+      Подмешиваемый класс к классам, создающим связанные в древовидную структуру объекты. Добавляет возможность
+    сохранения всего дерева в xml с указанием какие конкретно атрибуты объектов нужно сохранить. Атрибуты для
+    сохранения в xml отмечаются декораторами для дескрипторов свойств объектов (@property) @ObjTreeToXML.property
+    @ObjTreeToXML.property_b64 @ObjTreeToXML.property_serialize_and_b64.
+      Для отметки свойства, используемого как уникальный идентификатор объекта - декоратор @ObjTreeToXML.prop_uid
+    Свойство с родителем - @ObjTreeToXML.prop_parent, свойство со списком детей - @ObjTreeToXML.prop_childs
+      Атрибут объекта в xml "Class" устанавливается автоматически по названию класса объекта.
+      Каждому свойству можно добавить дополнительные атрибуты для записи в xml с использованием декоратора
+    @ObjTreeToXML.tags_for_prop
     """
     __uid_for_xml = set()
     __parent_for_xml = set()
@@ -175,6 +181,11 @@ class ObjTreeToXML:
                 yield prop_descriptor, class_attr_name                  # возвращаем дескриптор св-ва и имя атрибута
 
     def __xml_element(self):
+        """
+          Возвращает объект xml.etree.ElementTree.Element для объекта дерева вместе с порождаемыми объектами до
+        самого конца дерева.
+        :return: xml.etree.ElementTree.Element()
+        """
         xml_of_this_obj = xml_ET.Element("Object")  # Имя раздела в xml определяется по имени класса
         xml_of_this_obj.set("Class", self.__class__.__name__)
 
@@ -241,6 +252,10 @@ class ObjTreeToXML:
         return xml_of_this_obj
 
     def get_xml(self):
+        """
+          Возвращает строку с полной структурой xml текущего объекта.
+        :return: str()
+        """
         return xml_ET.tostring(self.__xml_element(), encoding="unicode")
 
 
@@ -250,7 +265,16 @@ class ObjTreeToXML:
 и добавит две таблицы связей - childs и parents:
 childs = UID, child_UID (Если одному UID соответствует несколько child_UID, то создается несколько строк с одним UID)
 parents = UID, parent_UID (Если одному UID соответствует несколько parent_UID, то создается несколько строк с одним UID)
+
+также добавить Processing info:
+UID| Текст информации обработки (напр. вывод распаковки архива итд)
+
+также добавить Dete info:
+UID| Rule Text| Rule file| простр имен| rule ver .... (для него можно создать отдельный класс листа) 
+
 """
+
+
 class XmlToDB:
     def __init__(self, xml_str):
         """
