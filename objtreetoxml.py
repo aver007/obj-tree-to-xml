@@ -15,20 +15,95 @@
 # todo !!!! Добавить код сохранения данных xml в БД (PostgreSQL или другие)
 
 import xml.etree.ElementTree as xml_ET
-import base64
+import base64, pickle
 
 
 class ObjTreeToXML:
     """
     Базовый класс
     """
-    __props_for_xml = set()
-    __props_b64_xml = set()
+    __uid_for_xml = set()
     __parent_for_xml = set()
     __childs_for_xml = set()
-    __uid_for_xml = set()
-
     __prop_tags = {}
+    __props_for_xml = set()
+    __props_b64_xml = set()
+    __props_serialize_and_b64 = set()
+
+
+    @staticmethod
+    def prop_uid(wrapped):
+        """
+        Декоратор определяющий свойство, используемое как UID (оно обязательно должно быть @property)
+        :param wrapped: Декорируемый параметр
+        :return: Декорируемый параметр
+        """
+        # Основной функциорнал по учету свойства
+        assert isinstance(wrapped, property)  # Декоратор применяется только к свойствам (класс property)
+        ObjTreeToXML.__uid_for_xml.add(wrapped)  # todo !! добавить проверку на единственность для ДАННОГО класса
+
+        # Возвращает тоже свойство (ничего не меняет)
+        return wrapped
+
+    @staticmethod
+    def prop_parent(wrapped):
+        """
+          Декоратор определяющий свойство, определяющее родительскую ветку (оно обязательно должно быть @property)
+          В xml добавляется не сам объект - parent, а только его UID, если есть !!!
+          Свойство добавлено для удобства последующей обработки полученного xml так как в структуре xml и так видно кто
+        чей родитель.
+        :param wrapped: Декорируемый параметр
+        :return: Декорируемый параметр
+        """
+        # Основной функциорнал по учету свойства
+        assert isinstance(wrapped, property)  # Декоратор применяется только к свойствам (класс property)
+        ObjTreeToXML.__parent_for_xml.add(wrapped)  # todo !! добавить проверку на единственность для ДАННОГО класса
+
+        # Возвращает тоже свойство (ничего не меняет)
+        return wrapped
+
+    @staticmethod
+    def prop_childs(wrapped):
+        """
+        Декоратор определяющий свойство, определяющее исходящие из объекта ветки (оно обязательно должно быть @property)
+        :param wrapped: Декорируемый параметр
+        :return: Декорируемый параметр
+        """
+        # Основной функциорнал по учету свойства
+        assert isinstance(wrapped, property)  # Декоратор применяется только к свойствам (класс property)
+        ObjTreeToXML.__childs_for_xml.add(wrapped)  # todo !! добавить проверку на единственность для ДАННОГО класса
+
+        # Возвращает тоже свойство (ничего не меняет)
+        return wrapped
+
+    @staticmethod
+    def tags_for_prop(**tags):
+        """
+            Декоратор определяющий каким свойствам (оно обязательно должно быть @property) нужно указать какие доп.
+        пометки для внесения в xml.
+            Декорируемое свойство уже должно быть помечено как @ObjTreeToXML.property или @ObjTreeToXML.property_b64
+        :param tags: словарь тегов (имя=значение)
+        :return:
+        """
+        def make_tag(wrapped):  # wrapped - объект дескриптора которому ставится пометка
+            # Основной функциорнал по учету свойств
+            assert isinstance(wrapped, property)  # Декоратор применяется только к свойствам (класс property)
+            # Теги ставятся толко свойствам помеченным как @ObjTreeToXML.property или @ObjTreeToXML.property_b64
+            assert wrapped in (
+                    ObjTreeToXML.__props_for_xml |
+                    ObjTreeToXML.__props_b64_xml |
+                    ObjTreeToXML.__props_serialize_and_b64
+            )  # @ObjTreeToXML.property или @ObjTreeToXML.property_b64 или @ObjTreeToXML.property_serialize_and_b64
+
+            if wrapped not in ObjTreeToXML.__prop_tags:  # Если конкретному декоратору не принадлежало раньше тегов
+                ObjTreeToXML.__prop_tags[wrapped] = dict()  # то создаем запись в словаре для словаря будущих тегов
+
+            ObjTreeToXML.__prop_tags[wrapped].update(tags)   # дескриптору в список добавляется пометка
+
+            # Возвращает тоже свойство (ничего не меняет)
+            return wrapped
+
+        return make_tag
 
     @staticmethod
     def property(wrapped):
@@ -61,73 +136,17 @@ class ObjTreeToXML:
         return wrapped
 
     @staticmethod
-    def tags_for_prop(**tags):
+    def property_serialize_and_b64(wrapped):
         """
-            Декоратор определяющий каким свойствам (оно обязательно должно быть @property) нужно указать какие доп.
-        пометки для внесения в xml.
-            Декорируемое свойство уже должно быть помечено как @ObjTreeToXML.property или @ObjTreeToXML.property_b64
-        :param tags: словарь тегов (имя=значение)
-        :return:
-        """
-        def make_tag(wrapped):  # wrapped - объект дескриптора которому ставится пометка
-            # Основной функциорнал по учету свойств
-            assert isinstance(wrapped, property)  # Декоратор применяется только к свойствам (класс property)
-            # Теги ставятся толко свойствам помеченным как @ObjTreeToXML.property или @ObjTreeToXML.property_b64
-            assert wrapped in (ObjTreeToXML.__props_for_xml | ObjTreeToXML.__props_b64_xml) # @ObjTreeToXML.property или
+        Декоратор определяющий свойство (оно обязательно должно быть @property) значение которого
+        при сохранении в xml будет сериализовано
 
-            if wrapped not in ObjTreeToXML.__prop_tags:  # Если конкретному декоратору не принадлежало раньше тегов
-                ObjTreeToXML.__prop_tags[wrapped] = dict()  # то создаем запись в словаре для словаря будущих тегов
-
-            ObjTreeToXML.__prop_tags[wrapped].update(tags)   # дескриптору в список добавляется пометка
-
-            # Возвращает тоже свойство (ничего не меняет)
-            return wrapped
-
-        return make_tag
-
-    # todo !!! Сделать @property_serialized (свойства, которые нужно сериализовать)
-
-    @staticmethod
-    def prop_parent(wrapped):
-        """
-          Декоратор определяющий свойство, определяющее родительскую ветку (оно обязательно должно быть @property)
-          В xml добавляется не сам объект - parent, а только его UID, если есть !!!
-          Свойство добавлено для удобства последующей обработки полученного xml так как в структуре xml и так видно кто
-        чей родитель.
         :param wrapped: Декорируемый параметр
         :return: Декорируемый параметр
         """
-        # Основной функциорнал по учету свойства
+        # Основной функциорнал по учету свойств
         assert isinstance(wrapped, property)  # Декоратор применяется только к свойствам (класс property)
-        ObjTreeToXML.__parent_for_xml.add(wrapped)  # todo !! добавить проверку на единственность для ДАННОГО класса
-
-        # Возвращает тоже свойство (ничего не меняет)
-        return wrapped
-
-    @staticmethod
-    def prop_uid(wrapped):
-        """
-        Декоратор определяющий свойство, используемое как UID (оно обязательно должно быть @property)
-        :param wrapped: Декорируемый параметр
-        :return: Декорируемый параметр
-        """
-        # Основной функциорнал по учету свойства
-        assert isinstance(wrapped, property)  # Декоратор применяется только к свойствам (класс property)
-        ObjTreeToXML.__uid_for_xml.add(wrapped)  # todo !! добавить проверку на единственность для ДАННОГО класса
-
-        # Возвращает тоже свойство (ничего не меняет)
-        return wrapped
-
-    @staticmethod
-    def prop_childs(wrapped):
-        """
-        Декоратор определяющий свойство, определяющее исходящие из объекта ветки (оно обязательно должно быть @property)
-        :param wrapped: Декорируемый параметр
-        :return: Декорируемый параметр
-        """
-        # Основной функциорнал по учету свойства
-        assert isinstance(wrapped, property)  # Декоратор применяется только к свойствам (класс property)
-        ObjTreeToXML.__childs_for_xml.add(wrapped)  # todo !! добавить проверку на единственность для ДАННОГО класса
+        ObjTreeToXML.__props_serialize_and_b64.add(wrapped)
 
         # Возвращает тоже свойство (ничего не меняет)
         return wrapped
@@ -135,7 +154,7 @@ class ObjTreeToXML:
     @staticmethod
     def __add_prop_tag_to_element(element, prop):
         """
-          Ещет пометки установленные для указанного свойства и записывает их в указанный элемент xml
+          Ищет пометки установленные для указанного свойства и записывает их в указанный элемент xml
         :param element: элемент xml
         :param prop: свойство для которого искать пометки
         :return:
@@ -196,7 +215,18 @@ class ObjTreeToXML:
                 attr_value = prop.fget(self)                        # извлекаем значение атрибута объекта
                 sub_element = xml_ET.SubElement(xml_obj_properties, attr_name)
                 sub_element.text = base64.b64encode(attr_value).decode("UTF-8")
-                sub_element.set('type', 'Base64_encoded')
+                sub_element.set('type', 'base64_encoded')
+
+                # Для свойства ищем теги и добавляем к элементу
+                ObjTreeToXML.__add_prop_tag_to_element(sub_element, prop)
+
+        # enumerate and adding properties to serialize and b64
+        for prop, attr_name in ObjTreeToXML.__iter_props(self):     # Итерируем по свойствам (property) объекта
+            if prop in ObjTreeToXML.__props_serialize_and_b64:      # если это свойство в списке для внесения в base64
+                attr_value = prop.fget(self)                        # извлекаем значение атрибута объекта
+                sub_element = xml_ET.SubElement(xml_obj_properties, attr_name)
+                sub_element.text = base64.b64encode(pickle.dumps(attr_value)).decode("UTF-8")
+                sub_element.set('type', 'pickle_encoded base64_encoded')
 
                 # Для свойства ищем теги и добавляем к элементу
                 ObjTreeToXML.__add_prop_tag_to_element(sub_element, prop)

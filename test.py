@@ -104,6 +104,13 @@ class ClassWithTown(SampleBaseClass):
     def listdata(self):
         return [123, 456, 789, bytes.fromhex("12abcdef")]
 
+    @ObjTreeToXML.tags_for_prop(its='vot tak budet perezapisano!!!!!')
+    @ObjTreeToXML.tags_for_prop(its='for pickle', whattodo='unbase64 and pickle.loads')
+    @ObjTreeToXML.property_serialize_and_b64
+    @property
+    def serialized_listdata(self):
+        return [123, 456, 789, bytes.fromhex("12abcdef")]
+
 
 if __name__ == "__main__":
 
