@@ -64,6 +64,7 @@ class ClassWithFilename(SampleBaseClass):
         self.__writemode = writemode
         super().__init__(a, b, c)
 
+    @ObjTreeToXML.tag_for_prop("huynya", "etot_vash_filename")
     @ObjTreeToXML.property
     @property
     def filename(self):
@@ -101,19 +102,6 @@ class ClassWithTown(SampleBaseClass):
 
 
 if __name__ == "__main__":
-    """class Foo(object):
-        bar = 'spam'
-
-        def __init__(self):
-            self.zlp = 11
-            self.__pnh = 99
-
-    print(Foo().__dict__)
-
-    print(*Foo.__dict__)
-
-    exit()
-    """
 
     filename_obj_readme = ClassWithFilename("a-a_readme", "b-b_readme", 98, "Readme.txt", 123456)
 
