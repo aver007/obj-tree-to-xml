@@ -61,7 +61,7 @@ class ObjTreeToXML:
         return wrapped
 
     @staticmethod
-    def tag_for_prop(name, value):
+    def tag_for_prop(name, value): 
         """
           Декоратор определяющий каким свойствам (оно обязательно должно быть @property) нужно указать какие доп пометки
         для внесения в xml.
