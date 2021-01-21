@@ -61,27 +61,24 @@ class ObjTreeToXML:
         return wrapped
 
     @staticmethod
-    def tag_for_prop(name, value): 
+    def tags_for_prop(**tags):
         """
-          Декоратор определяющий каким свойствам (оно обязательно должно быть @property) нужно указать какие доп пометки
-        для внесения в xml.
-          Декорируемое свойство уже должно быть помечено как @ObjTreeToXML.property или @ObjTreeToXML.property_b64
-        :param name: имя пометки
-        :param value: значение пометки
+            Декоратор определяющий каким свойствам (оно обязательно должно быть @property) нужно указать какие доп.
+        пометки для внесения в xml.
+            Декорируемое свойство уже должно быть помечено как @ObjTreeToXML.property или @ObjTreeToXML.property_b64
+        :param tags: словарь тегов (имя=значение)
         :return:
         """
-        tag = {name: value}
-
         def make_tag(wrapped):  # wrapped - объект дескриптора которому ставится пометка
             # Основной функциорнал по учету свойств
             assert isinstance(wrapped, property)  # Декоратор применяется только к свойствам (класс property)
             # Теги ставятся толко свойствам помеченным как @ObjTreeToXML.property или @ObjTreeToXML.property_b64
-            assert wrapped in (ObjTreeToXML.__props_for_xml | ObjTreeToXML.__props_b64_xml)
+            assert wrapped in (ObjTreeToXML.__props_for_xml | ObjTreeToXML.__props_b64_xml) # @ObjTreeToXML.property или
 
             if wrapped not in ObjTreeToXML.__prop_tags:  # Если конкретному декоратору не принадлежало раньше тегов
                 ObjTreeToXML.__prop_tags[wrapped] = dict()  # то создаем запись в словаре для словаря будущих тегов
 
-            ObjTreeToXML.__prop_tags[wrapped].update(tag)   # дескриптору в список добавляется пометка
+            ObjTreeToXML.__prop_tags[wrapped].update(tags)   # дескриптору в список добавляется пометка
 
             # Возвращает тоже свойство (ничего не меняет)
             return wrapped

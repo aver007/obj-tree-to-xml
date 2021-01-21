@@ -47,7 +47,9 @@ class SampleBaseClass(ObjTreeToXML):
         # Попробуем поработать с int
         return self.__c
 
+    @ObjTreeToXML.tags_for_prop(nu_etot_samiy_glavniy="vo kak", aga="eshe")
     @ObjTreeToXML.prop_uid
+    @ObjTreeToXML.tags_for_prop(a_vot_tak="tozhe mozhno")
     @ObjTreeToXML.property
     @property
     def md5_from_a_b(self):
@@ -64,7 +66,8 @@ class ClassWithFilename(SampleBaseClass):
         self.__writemode = writemode
         super().__init__(a, b, c)
 
-    @ObjTreeToXML.tag_for_prop("huynya", "etot_vash_filename")
+    @ObjTreeToXML.tags_for_prop(da_eshe_first="ClassWithFilename_1", da_eshe_second="ClassWithFilename_2")
+    @ObjTreeToXML.tags_for_prop(haha_first="ClassWithFilename_123", haha_second="ClassWithFilename_234")
     @ObjTreeToXML.property
     @property
     def filename(self):
@@ -90,6 +93,7 @@ class ClassWithTown(SampleBaseClass):
     def postcode(self):
         return self.__postcode
 
+    @ObjTreeToXML.tags_for_prop(one ='first', two='second', eshe='nu zachem')
     @ObjTreeToXML.property_b64
     @property
     def binarydata(self):
