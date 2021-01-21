@@ -130,11 +130,15 @@ if __name__ == "__main__":
     base_hz.addchild(filename_obj_readme)
 
     xml_data = base_hz.get_xml()
+    json_data = base_hz.get_json()
 
     print(xml_data)
 
     with open('rez.xml', 'w') as rez:
         rez.write(xml_data)
+
+    with open('rez.json', 'w') as rez:
+        rez.write(json_data)
 
 
 

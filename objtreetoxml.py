@@ -2,7 +2,7 @@
 
 # todo !!! Для всех списков параметров проверить чтобы они не повторялись (чтобы дважды не совать в xml)
 
-# todo !!!     Если в атрибут сначала записывался дескриптор декоратора @proiperty а за ним @"property.setter"
+# todo !!!     Если в атрибут сначала записывался дескриптор декоратора @property а за ним @"property.setter"
 # todo !!! то атрибуту уже передается новый дескриптор полученный от @"property.setter" а старый затирается
 # todo !!! и его старый вариант уже не доступен !!! (на его месте уже новый объект дескриптора!!!)
 # todo !!! ПОЭТОМУ или переделывать под сохранение в атрибутах моих дескрипторов (переделанных из @property)
@@ -260,6 +260,56 @@ class ObjTreeToXML:
         :return: str()
         """
         return xml_ET.tostring(self.__xml_element(), encoding="unicode")
+
+    def get_json(self):
+        """
+          Возвращает строку с полной структурой json текущего объекта. Теги не сохраняет (((( !!!
+        :return: str()
+        """
+        # todo !!!! Теги не сохраняет !!!
+        xml = xml_ET.tostring(self.__xml_element(), encoding="unicode")
+        return xml2json(xml)
+
+
+def xml2json(s):
+    """
+    code from xml2json package
+    :param s:
+    :return:
+    """
+    root = xml_ET.fromstring(s)
+    result = {root.tag: _parse_xml(root)}
+    return str(result)
+
+
+def _parse_xml(ele):
+    """
+    code from xml2json package
+    :param s:
+    :return:
+    """
+    result = None
+    tags = []
+    p_childs = []
+    for child in ele.getchildren():
+        tags.append(child.tag)
+        p_childs.append((child.tag, _parse_xml(child)))
+
+    if not tags:
+        text = ele.text
+        if text is not None:
+            text = text.strip()
+        else:
+            text = ''
+        return text
+
+    if len(set(tags)) < len(tags):
+        result = []
+        result = [dict([x]) for x in p_childs]
+    else:
+        result = {}
+        result = dict(p_childs)
+    return result
 
 
 # todo !!!! Почитать ORM, DOM, XML to DB, SQLAlchemy, Django-ORM

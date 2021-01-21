@@ -1,6 +1,7 @@
 .idea/
 example_xml/
 rez*.xml
+rez*.json
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
