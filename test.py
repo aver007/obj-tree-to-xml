@@ -32,11 +32,14 @@ class SampleBaseClass(ObjTreeToXML):
     def childs(self):
         return self.__childs
 
+    @ObjTreeToXML.tags_for_prop(for_old_DB="True")
     @ObjTreeToXML.property
     @property
     def a(self):
         return self.__a
 
+    @ObjTreeToXML.tags_for_prop(for_old_DB="True")
+    @ObjTreeToXML.property
     @property
     def b(self):
         return self.__b

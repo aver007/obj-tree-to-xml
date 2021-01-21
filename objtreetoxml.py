@@ -13,7 +13,8 @@
 # todo !!!! Добавить код сохранения данных xml в БД (PostgreSQL или другие)
 
 import xml.etree.ElementTree as xml_ET
-import base64, pickle
+import base64
+import pickle
 
 
 class ObjTreeToXML:
@@ -95,7 +96,7 @@ class ObjTreeToXML:
             # Основной функциорнал по учету свойств
             assert isinstance(wrapped, property)  # Декоратор применяется только к свойствам (класс property)
             # Теги ставятся толко свойствам помеченным как @ObjTreeToXML.property или @ObjTreeToXML.property_b64
-            assert wrapped in (
+            assert wrapped in (  # @ObjTreeToXML.property или @ObjTreeToXML.property_b64 или
                     ObjTreeToXML.__props_for_xml |
                     ObjTreeToXML.__props_b64_xml |
                     ObjTreeToXML.__props_serialize_and_b64
@@ -196,16 +197,18 @@ class ObjTreeToXML:
                 attr_value = uid_descriptor.fget(self)                     # извлекаем значение атрибута объекта
                 xml_of_this_obj.set("UID_attr_name", str(attr_name))
                 xml_of_this_obj.set("UID", str(attr_value))
+                break
 
         # add data about parent obj UID
         for prop, attr_name in ObjTreeToXML.__iter_props(self):  # Итерируем по свойствам (property) объекта
             if prop in ObjTreeToXML.__parent_for_xml:            # если это свойство в списке parents
                 parent = prop.fget(self)
-                if not parent or not uid_descriptor:
-                    break
-                parent_uid = uid_descriptor.fget(parent)   # Используем полученный ранее дескриптор для UID объектов
-                                                           # для получения UID родителя
+                if parent:                                     # Если есть родитель
+                    parent_uid = uid_descriptor.fget(parent)   # Берем у него UID  (очень интересная конструкция)))) )
+                else:
+                    parent_uid = ""                            # если нет - делаем пустым ))
                 xml_of_this_obj.set("parent", str(parent_uid))
+                break
 
         # enumerate and adding properties
         xml_obj_properties = xml_ET.SubElement(xml_of_this_obj, "properties")
@@ -261,6 +264,11 @@ class ObjTreeToXML:
 
 # todo !!!! Почитать ORM, DOM, XML to DB, SQLAlchemy, Django-ORM
 """
+ Для записи в таблицу старого типа можно помечать определенные атрибуты с помощью тега (@ObjTreeToXML.tags_for_prop)
+for_old_DB="True". Параметры будут извлекаться по ним и добавляться 
+"""
+
+"""
 Можно насоздавать таблиц по именам классов объектов со столбцами (UID, prop,prop,prop.....)
 и добавит две таблицы связей - childs и parents:
 childs = UID, child_UID (Если одному UID соответствует несколько child_UID, то создается несколько строк с одним UID)
@@ -275,21 +283,12 @@ UID| Rule Text| Rule file| простр имен| rule ver .... (для него
 """
 
 
-class XmlToDB:
+class XmlToOldDB:
     def __init__(self, xml_str):
         """
         Инициализирует объекты
         :param xml_str:
         """
-        pass
-
-    def __write_pgsql(self):
-        pass
-
-    def __write_mysql(self):
-        pass
-
-    def __write_sqlite(self):
         pass
 
     def __write_mssql(self):
@@ -307,5 +306,5 @@ class XmlToDB:
 
 
 # todo !!! Или такой вариант ))
-def xmltodb(xml_str, dbname, username, password):
+def xml_to_db(xml_str, dbname, username, password):
     pass
