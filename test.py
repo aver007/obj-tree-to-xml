@@ -1,5 +1,6 @@
 import hashlib
 from objtreetoxml import ObjTreeToXML
+import xmltoobjtree
 
 
 class SampleBaseClass(ObjTreeToXML):
@@ -139,6 +140,16 @@ if __name__ == "__main__":
 
     with open('rez.json', 'w') as rez:
         rez.write(json_data)
+
+##########################################################
+
+    with open('rez.xml', 'r') as xml:
+        xml_tata = xml.read()
+
+    xmltoobjtree.iter_objects_in_xml(xml_data)
+
+
+
 
 
 

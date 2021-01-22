@@ -11,8 +11,11 @@
 # todo !!!! Добавить код сохранения данных xml в БД (PostgreSQL или другие)
 
 """
+todo:
 1. Введение в работу с pgSQl
-2. Фабрика классов в Python (регенерация дерева объектов и классов по данным xml)
+2. Фабрика классов в Python (регенерация дерева объектов и классов по данным xml)  (mb тема метаклассов?)
+   https://refactoring.guru/ru/design-patterns/abstract-factory
+   https://refactoring.guru/ru/design-patterns/abstract-factory/python/example
 3. Парсинг xml
 4. ORM SQLAlchemy/  Django ORM
 5. xml -> DB
@@ -220,39 +223,44 @@ class ObjTreeToXML:  # todo Переименовать класс и исход�
                 break
 
         # enumerate and adding properties
-        xml_obj_properties = xml_ET.SubElement(xml_of_this_obj, "properties")
+        # xml_obj_properties = xml_ET.SubElement(xml_of_this_obj, "properties")
         for prop, attr_name in ObjTreeToXML.__iter_props(self):     # Итерируем по свойствам (property) объекта
             if prop in ObjTreeToXML.__props_for_xml:                # если это свойство в списке для внесения в xml
                 attr_value = prop.fget(self)                        # извлекаем значение атрибута объекта
-                sub_element = xml_ET.SubElement(xml_obj_properties, attr_name)
-                sub_element.text = str(attr_value)
+                property_element = xml_ET.SubElement(xml_of_this_obj, "property")  # каждому свойству - элемент xml
+                property_element.set('prop_name', attr_name)
+                property_element.text = str(attr_value)
                 if type(attr_value) != str:                         # Тип параметра указывается если он не строка
-                    sub_element.set('type', str(type(attr_value)))
+                    property_element.set('type', str(type(attr_value)))
 
                 # Для свойства ищем теги и добавляем к элементу
-                ObjTreeToXML.__add_prop_tag_to_element(sub_element, prop)
+                ObjTreeToXML.__add_prop_tag_to_element(property_element, prop)
+
 
         # enumerate and adding properties to base64
         for prop, attr_name in ObjTreeToXML.__iter_props(self):     # Итерируем по свойствам (property) объекта
             if prop in ObjTreeToXML.__props_b64_xml:                # если это свойство в списке для внесения в base64
                 attr_value = prop.fget(self)                        # извлекаем значение атрибута объекта
-                sub_element = xml_ET.SubElement(xml_obj_properties, attr_name)
-                sub_element.text = base64.b64encode(attr_value).decode("UTF-8")
-                sub_element.set('type', 'base64_encoded')
+                property_element = xml_ET.SubElement(xml_of_this_obj, "property")  # каждому свойству - элемент xml
+                property_element.set('prop_name', attr_name)
+                property_element.text = base64.b64encode(attr_value).decode("UTF-8")
+                property_element.set('type', 'base64_encoded')
 
                 # Для свойства ищем теги и добавляем к элементу
-                ObjTreeToXML.__add_prop_tag_to_element(sub_element, prop)
+                ObjTreeToXML.__add_prop_tag_to_element(property_element, prop)
 
         # enumerate and adding properties to serialize and b64
         for prop, attr_name in ObjTreeToXML.__iter_props(self):     # Итерируем по свойствам (property) объекта
             if prop in ObjTreeToXML.__props_serialize_and_b64:      # если это свойство в списке для внесения в base64
                 attr_value = prop.fget(self)                        # извлекаем значение атрибута объекта
-                sub_element = xml_ET.SubElement(xml_obj_properties, attr_name)
-                sub_element.text = base64.b64encode(pickle.dumps(attr_value)).decode("UTF-8")
-                sub_element.set('type', 'pickle_encoded base64_encoded')
+                #sub_element = xml_ET.SubElement(xml_obj_properties, attr_name)
+                property_element = xml_ET.SubElement(xml_of_this_obj, "property")  # каждому свойству - элемент xml
+                property_element.set('prop_name', attr_name)
+                property_element.text = base64.b64encode(pickle.dumps(attr_value)).decode("UTF-8")
+                property_element.set('type', 'pickle_encoded base64_encoded')
 
                 # Для свойства ищем теги и добавляем к элементу
-                ObjTreeToXML.__add_prop_tag_to_element(sub_element, prop)
+                ObjTreeToXML.__add_prop_tag_to_element(property_element, prop)
 
         # enumerate childs
         for prop, attr_name in ObjTreeToXML.__iter_props(self):  # Итерируем по свойствам (property) объекта
