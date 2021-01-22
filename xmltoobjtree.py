@@ -71,7 +71,11 @@ def get_class(xml_object_sample):
 
 def iter_objects_in_xml(xml_str):
     et = xml_ET.fromstring(xml_str)
-    for element in et.iter(tag="Object"):  # Обходим все элементы Object
-        print(element)
+    for obj in et.iter(tag="Object"):  # Обходим все объекты
+        print(obj)
+        #lst = obj.findall("property")
+        for prop in obj.findall("property"):  # проходим по элементам property, принадлежащим только текущему объекту
+            print(prop)
+
 
 
