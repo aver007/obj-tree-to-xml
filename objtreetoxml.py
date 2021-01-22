@@ -10,6 +10,15 @@
 
 # todo !!!! Добавить код сохранения данных xml в БД (PostgreSQL или другие)
 
+"""
+1. Введение в работу с pgSQl
+2. Фабрика классов в Python (регенерация дерева объектов и классов по данным xml)
+3. Парсинг xml
+4. ORM SQLAlchemy/  Django ORM
+5. xml -> DB
+6. xml ->
+"""
+
 import xml.etree.ElementTree as xml_ET
 from xmljson import badgerfish
 import json
@@ -17,7 +26,7 @@ import base64
 import pickle
 
 
-class ObjTreeToXML:
+class ObjTreeToXML:  # todo Переименовать класс и исходн файл тк добавил JSON
     """
       Подмешиваемый класс к классам, создающим связанные в древовидную структуру объекты. Добавляет возможность
     сохранения всего дерева в xml с указанием какие конкретно атрибуты объектов нужно сохранить. Атрибуты для
