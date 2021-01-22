@@ -27,7 +27,7 @@ class Post(DeclarativeBase):
 import xml.etree.ElementTree as xml_ET
 
 
-def get_class(xml_object_sample):
+def get_class(obj_attrs, props):
     class Surrogate:
         __UID = None
         __UID_attr = None
@@ -56,12 +56,10 @@ def get_class(xml_object_sample):
             # todo КАК? просто список UID детей или всетаки связь с объектами??
             pass
 
-
-
-    """
-    Surrogate.__class__.__name__ = xml_object_sample.class_name
-    Surrogate.
-    """
+    cl = obj_attrs["Class"]
+    Surrogate.__class__.__name__ = cl  # todo !!! Не работает. Похоже нужно использовать метаклассы !!!!!
+    for attr in obj_attrs:
+        setattr(Surrogate, "__" + attr, None)
 
     return Surrogate
 
@@ -72,10 +70,18 @@ def get_class(xml_object_sample):
 def iter_objects_in_xml(xml_str):
     et = xml_ET.fromstring(xml_str)
     for obj in et.iter(tag="Object"):  # Обходим все объекты
+        obj_attrs = obj.attrib         # атрибуты объекта
         print(obj)
-        #lst = obj.findall("property")
+        props = {}
         for prop in obj.findall("property"):  # проходим по элементам property, принадлежащим только текущему объекту
+            prop_name = prop.attrib.pop("prop_name")   # Извлекаем атрибут имени свойства и удаляем из списка атрибутов
+            prop_value = prop.text                     # Значение свойства
+            prop_attrs = prop.attrib                   # атрибуты свойства
+            props[prop_name] = (prop_value, prop_attrs)  # запихиваем свойство в словарь
             print(prop)
+
+        cls = get_class(obj_attrs, props)
+        print(cls)
 
 
 
