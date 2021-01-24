@@ -1,7 +1,8 @@
 #!python
 
 # todo Попробую пока функцию - фабрику, а потом нужно попробовать с метаклассами.
-
+# todo   Проследить чтобы поступающих в xml объектах присутствовали все необходимые атрибуты (даже пустые). Это необходимо
+#      для того чтобы корректно создавались поля новых классов.
 
 # https://gadjimuradov.ru/post/sqlalchemy-dlya-novichkov/
 """
@@ -25,13 +26,14 @@ class Post(DeclarativeBase):
 """
 
 import xml.etree.ElementTree as xml_ET
+import base64
+import pickle
 
 classes = {}
 
-
 def get_class(obj_attrs, props):
     if obj_attrs['Class'] in classes:  # Если такой класс уже был определен то мы берем его из ранее определенных
-        return classes['Class']
+        return classes[obj_attrs['Class']]
 
     class Surrogate:
         __UID = None
@@ -40,8 +42,19 @@ def get_class(obj_attrs, props):
         __childs = []
         __props = dict()
 
-        def __init__(self, input_xml_object):
-            pass
+        def __init__(self, obj_attrs, props):
+            for prop_name in props:
+                prop_value, prop_attrs = props[prop_name]
+                if 'type' in prop_attrs:              # Смотрим какие преобразования типов необходимо произвести
+                    attr_type = prop_attrs['type']
+                    if attr_type == "<class \'int\'>":  # если int
+                        prop_value = int(prop_value)
+                    elif attr_type == "pickle_encoded base64_encoded":  # если pickle
+                        prop_value = pickle.loads(base64.b64decode(prop_value))
+                    elif attr_type == "base64_encoded":  # если pickle
+                        prop_value = base64.b64decode(prop_value)
+
+                setattr(self, prop_name, prop_value)
 
         @property
         def uid(self):
@@ -76,8 +89,6 @@ def get_class(obj_attrs, props):
     return cls
 
 
-
-
 def iter_objects_in_xml(xml_str):
     et = xml_ET.fromstring(xml_str)
     for obj in et.iter(tag="Object"):  # Обходим все объекты
@@ -88,11 +99,13 @@ def iter_objects_in_xml(xml_str):
             prop_name = prop.attrib.pop("prop_name")   # Извлекаем атрибут имени свойства и удаляем из списка атрибутов
             prop_value = prop.text                     # Значение свойства
             prop_attrs = prop.attrib                   # атрибуты свойства
-            props[prop_name] = (prop_value, prop_attrs)  # запихиваем свойство j,]trnf в словарь !!!!!!!!!!!!!!!!
+            props[prop_name] = (prop_value, prop_attrs)  # запихиваем свойство объекта в словарь !!!!!!!!!!!!!!!!
             print(prop)
 
         cls = get_class(obj_attrs, props)
-        print(cls)
+        obj = cls(obj_attrs, props)
+        print(cls, obj)
+        yield obj
 
 
 
