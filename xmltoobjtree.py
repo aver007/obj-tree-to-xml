@@ -26,8 +26,13 @@ class Post(DeclarativeBase):
 
 import xml.etree.ElementTree as xml_ET
 
+classes = {}
+
 
 def get_class(obj_attrs, props):
+    if obj_attrs['Class'] in classes:  # Если такой класс уже был определен то мы берем его из ранее определенных
+        return classes['Class']
+
     class Surrogate:
         __UID = None
         __UID_attr = None
@@ -56,28 +61,34 @@ def get_class(obj_attrs, props):
             # todo КАК? просто список UID детей или всетаки связь с объектами??
             pass
 
-    cl = obj_attrs["Class"]
-    Surrogate.__class__.__name__ = cl  # todo !!! Не работает. Похоже нужно использовать метаклассы !!!!!
+    cls = type(obj_attrs['Class'], (Surrogate,), {})  # создает класс с указанным именем.
+
+    """
     for attr in obj_attrs:
         setattr(Surrogate, "__" + attr, None)
+    """
+    for prop_name in props:
+        prop_value, prop_attrs = props[prop_name]
 
-    return Surrogate
+        setattr(cls, prop_name, None)
 
-#A = get_A()
-#B = get_A()
+    classes[obj_attrs['Class']] = cls   # Добавляем созданный класс в список
+    return cls
+
+
 
 
 def iter_objects_in_xml(xml_str):
     et = xml_ET.fromstring(xml_str)
     for obj in et.iter(tag="Object"):  # Обходим все объекты
-        obj_attrs = obj.attrib         # атрибуты объекта
+        obj_attrs = obj.attrib         # атрибуты объекта !!!!!!!!!!!!!!!!!!!!!
         print(obj)
         props = {}
         for prop in obj.findall("property"):  # проходим по элементам property, принадлежащим только текущему объекту
             prop_name = prop.attrib.pop("prop_name")   # Извлекаем атрибут имени свойства и удаляем из списка атрибутов
             prop_value = prop.text                     # Значение свойства
             prop_attrs = prop.attrib                   # атрибуты свойства
-            props[prop_name] = (prop_value, prop_attrs)  # запихиваем свойство в словарь
+            props[prop_name] = (prop_value, prop_attrs)  # запихиваем свойство j,]trnf в словарь !!!!!!!!!!!!!!!!
             print(prop)
 
         cls = get_class(obj_attrs, props)
