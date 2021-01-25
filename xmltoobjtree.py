@@ -31,6 +31,16 @@ import pickle
 
 classes = {}
 
+# todo попробовать вывести атрибуты объекта просто в properties Object Class="ClassWithTown"
+#  UID_attr_name="md5_from_a_b"
+#  UID="10d003d943bb12e6e600065636b51b36"
+#  parent="4fdd5fc560bbc2801d95f03179160bf5"
+
+# todo Может вообще поубирать этих parent (они и так поидее должны связываться во время создания объектов)
+# todo а для информации parent закинуть в один из property (Надо смотреть как работают связи в ORM)
+# todo а UID оставить внутри какого-то property (только метку на него поставить UID)
+
+
 def get_class(obj_attrs, props):
     if obj_attrs['Class'] in classes:  # Если такой класс уже был определен то мы берем его из ранее определенных
         return classes[obj_attrs['Class']]
@@ -76,10 +86,6 @@ def get_class(obj_attrs, props):
 
     cls = type(obj_attrs['Class'], (Surrogate,), {})  # создает класс с указанным именем.
 
-    """
-    for attr in obj_attrs:
-        setattr(Surrogate, "__" + attr, None)
-    """
     for prop_name in props:
         prop_value, prop_attrs = props[prop_name]
 

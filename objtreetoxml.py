@@ -22,6 +22,11 @@ todo:
 6. xml ->
 """
 
+"""
+теги свойств prop_name и type - зарезервированы  (возможно еще и UID )!!!! 
+
+"""
+
 import xml.etree.ElementTree as xml_ET
 from xmljson import badgerfish
 import json
@@ -41,42 +46,24 @@ class ObjTreeToXML:  # todo Переименовать класс и исход�
       Каждому свойству можно добавить дополнительные атрибуты для записи в xml с использованием декоратора
     @ObjTreeToXML.tags_for_prop
     """
-    __uid_for_xml = set()
-    __parent_for_xml = set()
     __childs_for_xml = set()
     __prop_tags = {}
     __props_for_xml = set()
     __props_b64_xml = set()
     __props_serialize_and_b64 = set()
-
+    __props_to_obj_header = set()
 
     @staticmethod
-    def prop_uid(wrapped):
+    def prop_to_obj_header(wrapped):
         """
-        Декоратор определяющий свойство, используемое как UID (оно обязательно должно быть @property)
+        Декоратор определяющий свойство, которое можно добавить в заголовок объекта в xml.
+        Рекомендуется такие свойства выбирать из тех, которые уже определены в список свойств для xml.
         :param wrapped: Декорируемый параметр
         :return: Декорируемый параметр
         """
         # Основной функциорнал по учету свойства
         assert isinstance(wrapped, property)  # Декоратор применяется только к свойствам (класс property)
-        ObjTreeToXML.__uid_for_xml.add(wrapped)  # todo !! добавить проверку на единственность для ДАННОГО класса
-
-        # Возвращает тоже свойство (ничего не меняет)
-        return wrapped
-
-    @staticmethod
-    def prop_parent(wrapped):
-        """
-          Декоратор определяющий свойство, определяющее родительскую ветку (оно обязательно должно быть @property)
-          В xml добавляется не сам объект - parent, а только его UID, если есть !!!
-          Свойство добавлено для удобства последующей обработки полученного xml так как в структуре xml и так видно кто
-        чей родитель.
-        :param wrapped: Декорируемый параметр
-        :return: Декорируемый параметр
-        """
-        # Основной функциорнал по учету свойства
-        assert isinstance(wrapped, property)  # Декоратор применяется только к свойствам (класс property)
-        ObjTreeToXML.__parent_for_xml.add(wrapped)  # todo !! добавить проверку на единственность для ДАННОГО класса
+        ObjTreeToXML.__props_to_obj_header.add(wrapped)  # todo !! добавить проверку на единственность для ДАННОГО класса
 
         # Возвращает тоже свойство (ничего не меняет)
         return wrapped
@@ -202,25 +189,11 @@ class ObjTreeToXML:  # todo Переименовать класс и исход�
         xml_of_this_obj = xml_ET.Element("Object")  # Имя раздела в xml определяется по имени класса
         xml_of_this_obj.set("Class", self.__class__.__name__)
 
-        # add UID
+        # adding props to show in Object header
         for prop, attr_name in ObjTreeToXML.__iter_props(self):  # Итерируем по свойствам (property) объекта
-            if prop in ObjTreeToXML.__uid_for_xml:               # если это свойство в списке UID
-                uid_descriptor = prop
-                attr_value = uid_descriptor.fget(self)                     # извлекаем значение атрибута объекта
-                xml_of_this_obj.set("UID_attr_name", str(attr_name))
-                xml_of_this_obj.set("UID", str(attr_value))
-                break
-
-        # add data about parent obj UID
-        for prop, attr_name in ObjTreeToXML.__iter_props(self):  # Итерируем по свойствам (property) объекта
-            if prop in ObjTreeToXML.__parent_for_xml:            # если это свойство в списке parents
-                parent = prop.fget(self)
-                if parent:                                     # Если есть родитель
-                    parent_uid = uid_descriptor.fget(parent)   # Берем у него UID  (очень интересная конструкция)))) )
-                else:
-                    parent_uid = ""                            # если нет - делаем пустым ))
-                xml_of_this_obj.set("parent", str(parent_uid))
-                break
+            if prop in ObjTreeToXML.__props_to_obj_header:       # если это свойство в списке для внесения в Obj header
+                attr_value = prop.fget(self)                     # извлекаем значение атрибута объекта
+                xml_of_this_obj.set(attr_name, attr_value)
 
         # enumerate and adding properties
         # xml_obj_properties = xml_ET.SubElement(xml_of_this_obj, "properties")
@@ -263,11 +236,12 @@ class ObjTreeToXML:  # todo Переименовать класс и исход�
                 ObjTreeToXML.__add_prop_tag_to_element(property_element, prop)
 
         # enumerate childs
+        childs_element = xml_ET.SubElement(xml_of_this_obj, "childs")  # каждому свойству - элемент xml
         for prop, attr_name in ObjTreeToXML.__iter_props(self):  # Итерируем по свойствам (property) объекта
             if prop in ObjTreeToXML.__childs_for_xml:            # если это свойство в списке свойст-ссылок на детей
                 child_list = prop.fget(self)                     # из свойства извлекаем список на объекты детей
                 for child in child_list:
-                    xml_of_this_obj.append(child.__xml_element())  # проходим по каждому ребенку рекурсивно
+                    childs_element.append(child.__xml_element())  # проходим по каждому ребенку рекурсивно
 
         return xml_of_this_obj
 
