@@ -31,15 +31,7 @@ import pickle
 
 classes = {}
 
-# todo попробовать вывести атрибуты объекта просто в properties Object Class="ClassWithTown"
-#  UID_attr_name="md5_from_a_b"
-#  UID="10d003d943bb12e6e600065636b51b36"
-#  parent="4fdd5fc560bbc2801d95f03179160bf5"
-
-# todo Может вообще поубирать этих parent (они и так поидее должны связываться во время создания объектов)
 # todo а для информации parent закинуть в один из property (Надо смотреть как работают связи в ORM)
-# todo а UID оставить внутри какого-то property (только метку на него поставить UID)
-
 
 def get_class(class_name, props):
     if class_name in classes:  # Если такой класс уже был определен то мы берем его из ранее определенных
@@ -52,7 +44,7 @@ def get_class(class_name, props):
         __prop_attributes = dict()
 
         def __init__(self, props):
-            self.__uid = None
+            self.__uid = None  # todo !!!   + добавить возможность включать в xml сериализованные декодеры.
             self.__prop_attributes = dict()
             for prop_name in props:  # просматриваем все свойства объекта xml
                 prop_value, prop_attrs = props[prop_name]  # Извлекаем значение и атрибуты свойства
@@ -127,6 +119,7 @@ def __get_obj(obj_element):
         obj.add_child(__get_obj(child_obj))
 
     return obj
+
 
 def make_obj_tree(xml_str):
     et = xml_ET.fromstring(xml_str)
