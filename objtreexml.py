@@ -32,7 +32,7 @@ todo:
 """
 
 
-class ObjTreeToXml:  # todo Переименовать класс и исходн файл тк добавил JSON
+class ObjTreeToXml:
     """
       Подмешиваемый класс к классам, создающим связанные в древовидную структуру объекты. Добавляет возможность
     сохранения всего дерева в xml с указанием какие конкретно атрибуты объектов нужно сохранить. Атрибуты для
@@ -50,6 +50,7 @@ class ObjTreeToXml:  # todo Переименовать класс и исход�
     __props_b64_xml = set()
     __props_serialize_and_b64 = set()
     __props_to_obj_header = set()
+    __props_encoded = {}
 
     @staticmethod
     def prop_to_obj_header(wrapped):
@@ -156,6 +157,27 @@ class ObjTreeToXml:  # todo Переименовать класс и исход�
         return wrapped
 
     @staticmethod
+    def property_encoded(encoder, decoder):
+        # todo property разного типа не должны пересекаться. НУЖНО сделать проверки!
+        """
+            Декоратор определяющий свойство на сохранение в xml (оно обязательно должно быть @property) закодированный
+        пользовательским кодеком.
+        :param encoder: кодер (вызываемый объект)
+        :param decoder: декодер (вызываемый объект)
+        :return:
+        """
+
+        def set_codecs(wrapped):  # wrapped - объект дескриптора которому ставится пометка
+            # Основной функциорнал по учету свойств
+            assert isinstance(wrapped, property)  # Декоратор применяется только к свойствам (класс property)
+            ObjTreeToXml.__props_encoded[wrapped] = (encoder, decoder)  # устанавливаем свойству кодеки
+
+            # Возвращает тоже свойство (ничего не меняет)
+            return wrapped
+
+        return set_codecs
+
+    @staticmethod
     def __add_prop_tag_to_element(element, prop):
         """
           Ищет пометки установленные для указанного свойства и записывает их в указанный элемент xml
@@ -223,11 +245,23 @@ class ObjTreeToXml:  # todo Переименовать класс и исход�
         for prop, attr_name in ObjTreeToXml.__iter_props(self):     # Итерируем по свойствам (property) объекта
             if prop in ObjTreeToXml.__props_serialize_and_b64:      # если это свойство в списке для внесения в base64
                 attr_value = prop.fget(self)                        # извлекаем значение атрибута объекта
-                #sub_element = xml_ET.SubElement(xml_obj_properties, attr_name)
                 property_element = xml_ET.SubElement(xml_of_this_obj, "property")  # каждому свойству - элемент xml
                 property_element.set('prop_name', attr_name)
                 property_element.text = base64.b64encode(pickle.dumps(attr_value)).decode("UTF-8")
                 property_element.set('type', 'pickle_encoded base64_encoded')
+
+                # Для свойства ищем теги и добавляем к элементу
+                ObjTreeToXml.__add_prop_tag_to_element(property_element, prop)
+
+        # enumerate and adding properties to user-defined encoding
+        for prop, attr_name in ObjTreeToXml.__iter_props(self):     # Итерируем по свойствам (property) объекта
+            if prop in ObjTreeToXml.__props_encoded:                # если это свойство в списке для кодирования
+                encoder, decoder = ObjTreeToXml.__props_encoded[prop]  # извлекаем кодер и декодер
+                attr_value = prop.fget(self)                        # извлекаем значение атрибута объекта
+                property_element = xml_ET.SubElement(xml_of_this_obj, "property")  # каждому свойству - элемент xml
+                property_element.set('prop_name', attr_name)
+                property_element.text = encoder(attr_value)
+                property_element.set('type', decoder.__name__)      # todo! или .__qualname__ или +.__module__ ???
 
                 # Для свойства ищем теги и добавляем к элементу
                 ObjTreeToXml.__add_prop_tag_to_element(property_element, prop)
@@ -249,7 +283,7 @@ class ObjTreeToXml:  # todo Переименовать класс и исход�
         """
         return xml_ET.tostring(self.__xml_element(), encoding="unicode")
 
-    def get_json(self):
+    def get_json(self):  # todo Убрать JSON или нет?
         """
           Возвращает строку с полной структурой json текущего объекта. Используется конвенция BadgerFish
         :return: str()

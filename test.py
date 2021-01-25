@@ -2,6 +2,19 @@ import hashlib
 from objtreexml import ObjTreeToXml, XmlToObjTree
 
 
+def one_two_three(xyz):
+    print('one..')
+    print(xyz)
+    print('three..')
+    return 'one..' + str(xyz) + 'three..'
+
+
+def three_two_one(xyz):
+    print('one..')
+    print(xyz)
+    print('three..')
+    return '1 + ' + xyz + " + 3"
+
 
 class SampleBaseClass(ObjTreeToXml):
     def __init__(self, a, b, c):
@@ -105,7 +118,7 @@ class ClassWithTown(SampleBaseClass):
     def binarydata(self):
         return bytes.fromhex("12abcdef")
 
-    @ObjTreeToXml.property
+    @ObjTreeToXml.property_encoded(one_two_three, three_two_one)
     @property
     def listdata(self):
         return [123, 456, 789, bytes.fromhex("12abcdef")]
@@ -117,8 +130,16 @@ class ClassWithTown(SampleBaseClass):
     def serialized_listdata(self):
         return [123, 456, 789, bytes.fromhex("12abcdef")]
 
-
 if __name__ == "__main__":
+    import pickle
+    pp = pickle.dumps(one_two_three)
+    funct = pickle.loads(pp)
+    funct("vot eto da !!!! TWO !!!")
+
+
+##############################
+##############################
+##############################
 
     filename_obj_readme = ClassWithFilename("a-a_readme", "b-b_readme", 98, "Readme.txt", 123456)
 
