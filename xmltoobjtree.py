@@ -41,20 +41,23 @@ classes = {}
 # todo а UID оставить внутри какого-то property (только метку на него поставить UID)
 
 
-def get_class(obj_attrs, props):
-    if obj_attrs['Class'] in classes:  # Если такой класс уже был определен то мы берем его из ранее определенных
-        return classes[obj_attrs['Class']]
+def get_class(class_name, props):
+    if class_name in classes:  # Если такой класс уже был определен то мы берем его из ранее определенных
+        return classes[class_name]
 
     class Surrogate:
-        __UID = None
-        __UID_attr = None
+        __uid = None
         __parent = None
         __childs = []
-        __props = dict()
+        __prop_attributes = dict()
 
-        def __init__(self, obj_attrs, props):
-            for prop_name in props:
-                prop_value, prop_attrs = props[prop_name]
+        def __init__(self, props):
+            self.__uid = None
+            self.__prop_attributes = dict()
+            for prop_name in props:  # просматриваем все свойства объекта xml
+                prop_value, prop_attrs = props[prop_name]  # Извлекаем значение и атрибуты свойства
+                self.__prop_attributes[prop_name] = prop_attrs  # заполняем словарь свойств и их атрибутов
+
                 if 'type' in prop_attrs:              # Смотрим какие преобразования типов необходимо произвести
                     attr_type = prop_attrs['type']
                     if attr_type == "<class \'int\'>":  # если int
@@ -64,54 +67,68 @@ def get_class(obj_attrs, props):
                     elif attr_type == "base64_encoded":  # если pickle
                         prop_value = base64.b64decode(prop_value)
 
-                setattr(self, prop_name, prop_value)
+                setattr(self, prop_name, prop_value)  # Заносим каждое свойство в инициализируемый объект
+
+        def add_child(self, child):
+            """
+            Добавляет ребенка в список порожденных узлов
+            :param child:
+            :return:
+            """
+            self.__childs.append(child)
+            child.__parent = self
 
         @property
         def uid(self):
-            pass
-
-        @property
-        def uid_attr(self):
-            pass
+            return self.__uid
 
         @property
         def parent(self):
-            # todo КАК? просто UID родителя или всетаки связь с объектом??
-            pass
+            return self.__parent
 
         @property
         def childs(self):
-            # todo КАК? просто список UID детей или всетаки связь с объектами??
-            pass
+            return self.__childs
 
-    cls = type(obj_attrs['Class'], (Surrogate,), {})  # создает класс с указанным именем.
+        @property
+        def props_attributes(self):
+            return self.__prop_attributes
+
+    cls = type(class_name, (Surrogate,), {})  # создает класс с указанным именем.
 
     for prop_name in props:
         prop_value, prop_attrs = props[prop_name]
 
         setattr(cls, prop_name, None)
 
-    classes[obj_attrs['Class']] = cls   # Добавляем созданный класс в список
+    classes[class_name] = cls   # Добавляем созданный класс в список
     return cls
 
 
-def iter_objects_in_xml(xml_str):
+def __get_obj(obj_element):
+    class_name = obj_element.get("Class")  # определяем имя класса элемента
+    assert class_name  # атрибут Class должен быть у любого объекта
+    print(class_name)
+
+    obj_attrs = obj_element.attrib  # атрибуты объекта !!!!!!!!!!!!!!!!!!!!!
+    props = {}
+    for prop in obj_element.findall("property"):  # проходим по элементам property, принадлежащим только текущ. объекту
+        prop_name = prop.attrib.pop("prop_name")  # Извлекаем атрибут имени свойства и удаляем из списка атрибутов
+        prop_value = prop.text  # Значение свойства
+        prop_attrs = prop.attrib  # атрибуты свойства
+        props[prop_name] = (prop_value, prop_attrs)  # запихиваем свойство объекта в словарь !!!!!!!!!!!!!!!!
+        print(prop)
+
+    cls = get_class(class_name, props)  # получаем класс элемента
+    obj = cls(props)                    # создаем экземпляр полученного класса
+
+    childs_element = obj_element.find("childs")  # находим элемент с вложенными объектами
+    for child_obj in childs_element.findall("Object"):  # Обходим все дочерн объекты (но только для данного объекта)
+        obj.add_child(__get_obj(child_obj))
+
+    return obj
+
+def make_obj_tree(xml_str):
     et = xml_ET.fromstring(xml_str)
-    for obj in et.iter(tag="Object"):  # Обходим все объекты
-        obj_attrs = obj.attrib         # атрибуты объекта !!!!!!!!!!!!!!!!!!!!!
-        print(obj)
-        props = {}
-        for prop in obj.findall("property"):  # проходим по элементам property, принадлежащим только текущему объекту
-            prop_name = prop.attrib.pop("prop_name")   # Извлекаем атрибут имени свойства и удаляем из списка атрибутов
-            prop_value = prop.text                     # Значение свойства
-            prop_attrs = prop.attrib                   # атрибуты свойства
-            props[prop_name] = (prop_value, prop_attrs)  # запихиваем свойство объекта в словарь !!!!!!!!!!!!!!!!
-            print(prop)
-
-        cls = get_class(obj_attrs, props)
-        obj = cls(obj_attrs, props)
-        print(cls, obj)
-        yield obj
-
-
-
+    obj = __get_obj(et)
+    return obj

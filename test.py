@@ -146,12 +146,9 @@ if __name__ == "__main__":
 ##########################################################
 
     with open('rez.xml', 'r') as xml:
-        xml_tata = xml.read()
+        xml_data = xml.read()
 
-    for obj_from_xml in xmltoobjtree.iter_objects_in_xml(xml_data):
-        print(obj_from_xml)
-
-
+    tree = xmltoobjtree.make_obj_tree(xml_data)
 
 
 
