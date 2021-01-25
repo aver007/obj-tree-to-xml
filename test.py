@@ -1,9 +1,9 @@
 import hashlib
-from objtreetoxml import ObjTreeToXML
-import xmltoobjtree
+from objtreexml import ObjTreeToXml, XmlToObjTree
 
 
-class SampleBaseClass(ObjTreeToXML):
+
+class SampleBaseClass(ObjTreeToXml):
     def __init__(self, a, b, c):
         self.__parent = None
 
@@ -27,34 +27,34 @@ class SampleBaseClass(ObjTreeToXML):
         self.__childs.append(child)
         child.__parent = self
 
-    @ObjTreeToXML.prop_childs
+    @ObjTreeToXml.prop_childs
     @property
     def childs(self):
         return self.__childs
 
-    @ObjTreeToXML.tags_for_prop(for_old_DB="True")
-    @ObjTreeToXML.property
+    @ObjTreeToXml.tags_for_prop(for_old_DB="True")
+    @ObjTreeToXml.property
     @property
     def a(self):
         return self.__a
 
-    @ObjTreeToXML.tags_for_prop(for_old_DB="True")
-    @ObjTreeToXML.property
+    @ObjTreeToXml.tags_for_prop(for_old_DB="True")
+    @ObjTreeToXml.property
     @property
     def b(self):
         return self.__b
 
-    @ObjTreeToXML.property
+    @ObjTreeToXml.property
     @property
     def c(self):
         # Попробуем поработать с int
         return self.__c
 
-    @ObjTreeToXML.prop_to_obj_header
-    @ObjTreeToXML.tags_for_prop(nu_etot_samiy_glavniy="vo kak", aga="eshe")
-    @ObjTreeToXML.tags_for_prop(UID="True")
-    @ObjTreeToXML.tags_for_prop(a_vot_tak="tozhe mozhno")
-    @ObjTreeToXML.property
+    @ObjTreeToXml.prop_to_obj_header
+    @ObjTreeToXml.tags_for_prop(nu_etot_samiy_glavniy="vo kak", aga="eshe")
+    @ObjTreeToXml.tags_for_prop(UID="True")
+    @ObjTreeToXml.tags_for_prop(a_vot_tak="tozhe mozhno")
+    @ObjTreeToXml.property
     @property
     def md5_from_a_b(self):
         return hashlib.md5((self.a + self.b).encode("UTF-8")).hexdigest()
@@ -70,10 +70,10 @@ class ClassWithFilename(SampleBaseClass):
         self.__writemode = writemode
         super().__init__(a, b, c)
 
-    @ObjTreeToXML.prop_to_obj_header
-    @ObjTreeToXML.tags_for_prop(da_eshe_first="ClassWithFilename_1", da_eshe_second="ClassWithFilename_2")
-    @ObjTreeToXML.tags_for_prop(haha_first="ClassWithFilename_123", haha_second="ClassWithFilename_234")
-    @ObjTreeToXML.property
+    @ObjTreeToXml.prop_to_obj_header
+    @ObjTreeToXml.tags_for_prop(da_eshe_first="ClassWithFilename_1", da_eshe_second="ClassWithFilename_2")
+    @ObjTreeToXml.tags_for_prop(haha_first="ClassWithFilename_123", haha_second="ClassWithFilename_234")
+    @ObjTreeToXml.property
     @property
     def filename(self):
         return self.__filename
@@ -89,8 +89,8 @@ class ClassWithTown(SampleBaseClass):
         self.__postcode = postcode
         super().__init__(a, b, c)
 
-    @ObjTreeToXML.prop_to_obj_header
-    @ObjTreeToXML.property
+    @ObjTreeToXml.prop_to_obj_header
+    @ObjTreeToXml.property
     @property
     def town(self):
         return self.__town
@@ -99,20 +99,20 @@ class ClassWithTown(SampleBaseClass):
     def postcode(self):
         return self.__postcode
 
-    @ObjTreeToXML.tags_for_prop(one ='first', two='second', eshe='nu zachem')
-    @ObjTreeToXML.property_b64
+    @ObjTreeToXml.tags_for_prop(one ='first', two='second', eshe='nu zachem')
+    @ObjTreeToXml.property_b64
     @property
     def binarydata(self):
         return bytes.fromhex("12abcdef")
 
-    @ObjTreeToXML.property
+    @ObjTreeToXml.property
     @property
     def listdata(self):
         return [123, 456, 789, bytes.fromhex("12abcdef")]
 
-    @ObjTreeToXML.tags_for_prop(its='vot tak budet perezapisano!!!!!')
-    @ObjTreeToXML.tags_for_prop(its='for pickle', whattodo='unbase64 and pickle.loads')
-    @ObjTreeToXML.property_serialize_and_b64
+    @ObjTreeToXml.tags_for_prop(its='vot tak budet perezapisano!!!!!')
+    @ObjTreeToXml.tags_for_prop(its='for pickle', whattodo='unbase64 and pickle.loads')
+    @ObjTreeToXml.property_serialize_and_b64
     @property
     def serialized_listdata(self):
         return [123, 456, 789, bytes.fromhex("12abcdef")]
@@ -148,7 +148,7 @@ if __name__ == "__main__":
     with open('rez.xml', 'r') as xml:
         xml_data = xml.read()
 
-    tree = xmltoobjtree.XmlToObjTree(xml_data).make_obj_tree()
+    tree = XmlToObjTree(xml_data).make_obj_tree()
     print(tree)
 
 
