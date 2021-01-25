@@ -148,7 +148,8 @@ if __name__ == "__main__":
     with open('rez.xml', 'r') as xml:
         xml_data = xml.read()
 
-    tree = xmltoobjtree.make_obj_tree(xml_data)
+    tree = xmltoobjtree.XmlToObjTree(xml_data).make_obj_tree()
+    print(tree)
 
 
 

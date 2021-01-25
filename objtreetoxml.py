@@ -15,10 +15,10 @@
 """
 todo:
 1. Введение в работу с pgSQl
-2. Фабрика классов в Python (регенерация дерева объектов и классов по данным xml)  (mb тема метаклассов?)
+-2. Фабрика классов в Python (регенерация дерева объектов и классов по данным xml)  (mb тема метаклассов?)
    https://refactoring.guru/ru/design-patterns/abstract-factory
    https://refactoring.guru/ru/design-patterns/abstract-factory/python/example
-3. Парсинг xml
++3. Парсинг xml
 4. ORM SQLAlchemy/  Django ORM
 5. xml -> DB
 6. xml ->
