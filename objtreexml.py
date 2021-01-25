@@ -261,7 +261,10 @@ class ObjTreeToXml:
                 property_element = xml_ET.SubElement(xml_of_this_obj, "property")  # каждому свойству - элемент xml
                 property_element.set('prop_name', attr_name)
                 property_element.text = encoder(attr_value)
-                property_element.set('type', decoder.__name__)      # todo! или .__qualname__ или +.__module__ ???
+                property_element.set(
+                    'type',
+                    decoder.__module__ + '.' + decoder.__name__    # todo! или .__qualname__
+                )
 
                 # Для свойства ищем теги и добавляем к элементу
                 ObjTreeToXml.__add_prop_tag_to_element(property_element, prop)
@@ -276,12 +279,32 @@ class ObjTreeToXml:
 
         return xml_of_this_obj
 
+    def __get_decoders(self):
+        """
+        Генератор. Последовательно возвращает функции декодеров
+        :return:
+        """
+        for encoded_property in ObjTreeToXml.__props_encoded:
+            encoder, decoder = ObjTreeToXml.__props_encoded[encoded_property]
+            yield decoder
+
+
     def get_xml(self):
         """
           Возвращает строку с полной структурой xml текущего объекта.
         :return: str()
         """
-        return xml_ET.tostring(self.__xml_element(), encoding="unicode")
+        root = xml_ET.Element("root")        # создаем корневой элемент
+        root.append(self.__xml_element())    # записываем в него узловой объект (с вложенными потомками)
+        for funct_decoder in self.__get_decoders():  # добавляем в структуру все декодеры, которые имеем
+            serialized_decoder = base64.b64encode(   # преобразуем функцию-декодер в строку
+                pickle.dumps(funct_decoder)
+            ).decode("UTF-8")
+            decoder_element = xml_ET.SubElement(root, "decoder")  # добавляем элемент - decoder
+            decoder_element.text = serialized_decoder             # записываем закодированную функцию в элемент декодера
+            decoder_element.set("type", funct_decoder.__module__ + '.' + funct_decoder.__name__)  # присваиваем имя
+
+        return xml_ET.tostring(root, encoding="unicode")  # преобразуем xml в строку
 
     def get_json(self):  # todo Убрать JSON или нет?
         """

@@ -130,6 +130,7 @@ class ClassWithTown(SampleBaseClass):
     def serialized_listdata(self):
         return [123, 456, 789, bytes.fromhex("12abcdef")]
 
+
 if __name__ == "__main__":
     import pickle
     pp = pickle.dumps(one_two_three)
