@@ -95,7 +95,7 @@ class ClassWithFilename(SampleBaseClass):
     def writemode(self):
         return self.__writemode
 
-    @ObjTreeToXml.property_encoded(encoder=str, decoder=None)
+    @ObjTreeToXml.property_encoded(encoder=str, decoder=int)
     @property
     def return_123(self):
         return 123

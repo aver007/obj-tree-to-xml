@@ -267,7 +267,7 @@ class ObjTreeToXml:
                 if decoder:   # если кодировщик определен то добавляем тип к свойству (для последующего декодирования)
                     property_element.set(
                         'type',
-                        decoder.__module__ + '.' + decoder.__name__    # todo! или .__qualname__
+                        decoder.__module__ + '.' + decoder.__qualname__
                     )
 
                 # Для свойства ищем теги и добавляем к элементу
@@ -306,7 +306,7 @@ class ObjTreeToXml:
             ).decode("UTF-8")
             decoder_element = xml_ET.SubElement(root, "decoder")  # добавляем элемент - decoder
             decoder_element.text = serialized_decoder             # записываем закодированную функцию в элемент декодера
-            decoder_element.set("type", funct_decoder.__module__ + '.' + funct_decoder.__name__)  # присваиваем имя
+            decoder_element.set("type", funct_decoder.__module__ + '.' + funct_decoder.__qualname__)  # присваиваем имя
 
         return xml_ET.tostring(root, encoding="unicode")  # преобразуем xml в строку
 
@@ -371,6 +371,7 @@ class Post(DeclarativeBase):
 
 # todo а для информации parent закинуть в один из property (Надо смотреть как работают связи в ORM)
 
+# todo проверить кодирование и раскодирование в разных virtualenv (типа на разных машинах)
 
 class XmlToObjTree:
     """
