@@ -157,7 +157,7 @@ class ObjTreeToXml:
         return wrapped
 
     @staticmethod
-    def property_encoded(encoder, decoder):
+    def property_encoded(encoder=None, decoder=None):
         # todo property разного типа не должны пересекаться. НУЖНО сделать проверки!
         """
             Декоратор определяющий свойство на сохранение в xml (оно обязательно должно быть @property) закодированный
@@ -260,11 +260,15 @@ class ObjTreeToXml:
                 attr_value = prop.fget(self)                        # извлекаем значение атрибута объекта
                 property_element = xml_ET.SubElement(xml_of_this_obj, "property")  # каждому свойству - элемент xml
                 property_element.set('prop_name', attr_name)
-                property_element.text = encoder(attr_value)
-                property_element.set(
-                    'type',
-                    decoder.__module__ + '.' + decoder.__name__    # todo! или .__qualname__
-                )
+                if encoder:   # если кодировщик определен - кодируем
+                    attr_value = encoder(attr_value)
+                property_element.text = attr_value
+
+                if decoder:   # если кодировщик определен то добавляем тип к свойству (для последующего декодирования)
+                    property_element.set(
+                        'type',
+                        decoder.__module__ + '.' + decoder.__name__    # todo! или .__qualname__
+                    )
 
                 # Для свойства ищем теги и добавляем к элементу
                 ObjTreeToXml.__add_prop_tag_to_element(property_element, prop)
@@ -286,7 +290,8 @@ class ObjTreeToXml:
         """
         for encoded_property in ObjTreeToXml.__props_encoded:
             encoder, decoder = ObjTreeToXml.__props_encoded[encoded_property]
-            yield decoder
+            if decoder:  # возвращаем декодер который не None
+                yield decoder
 
     def get_xml(self):
         """
