@@ -277,7 +277,7 @@ class ObjTreeToXml:
         childs_element = xml_ET.SubElement(xml_of_this_obj, "childs")  # каждому свойству - элемент xml
         for prop, attr_name in ObjTreeToXml.__iter_props(self):  # Итерируем по свойствам (property) объекта
             if prop in ObjTreeToXml.__childs_for_xml:            # если это свойство в списке свойст-ссылок на детей
-                child_list = prop.fget(self)                     # из свойства извлекаем список на объекты детей
+                child_list = prop.fget(self)                     # из свойства извлекаем список на объgitекты детей
                 for child in child_list:
                     childs_element.append(child.__xml_element())  # проходим по каждому ребенку рекурсивно
 
@@ -506,7 +506,6 @@ class XmlToObjTree:
         """
         class_name = obj_element.get("Class")  # определяем имя класса элемента
         assert class_name  # атрибут Class должен быть у любого объекта
-        print(class_name)
 
         props = {}
         for prop in obj_element.findall(
@@ -520,7 +519,6 @@ class XmlToObjTree:
                     prop_value = decoder_funct(prop_value)  # декодируем
 
             props[prop_name] = (prop_value, prop_attrs)  # запихиваем свойство объекта в словарь !!!!!!!!!!!!!!!!
-            print(prop)
 
         cls = XmlToObjTree.__get_class(class_name, props)  # получаем класс элемента
         obj = cls(props)  # создаем экземпляр полученного класса
