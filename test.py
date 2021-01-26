@@ -95,6 +95,11 @@ class ClassWithFilename(SampleBaseClass):
     def writemode(self):
         return self.__writemode
 
+    @ObjTreeToXml.property_encoded(str, int)
+    @property
+    def return_123(self):
+        return 123
+
 
 class ClassWithTown(SampleBaseClass):
     def __init__(self, a, b, c, town, postcode):

@@ -288,7 +288,6 @@ class ObjTreeToXml:
             encoder, decoder = ObjTreeToXml.__props_encoded[encoded_property]
             yield decoder
 
-
     def get_xml(self):
         """
           Возвращает строку с полной структурой xml текущего объекта.
@@ -372,7 +371,7 @@ class XmlToObjTree:
     """
     Класс преобразования xml в дерево объектов разных классов. Классы и связи объектов извлекаются из xml
     """
-    classes = {}  # Список классов, которые ранее были получены из xml сгенерированы их суррогаты
+    classes = {}   # Список классов, которые ранее были получены из xml сгенерированы их суррогаты
 
     class Surrogate:
         """
@@ -448,6 +447,13 @@ class XmlToObjTree:
         :param xml_str:
         """
         self.__xml_str = xml_str
+        self.__decoders = {}  # набор декодеров (по их именам (type)) todo Может сделать на уровне класса?
+                              # todo и проверять был ли уже в списке
+
+        self.__root_element = xml_ET.fromstring(self.__xml_str)  # парсит xml из строки
+
+        for decoder in self.__root_element.iter("decoder"):   # извлекаем из xml все декодеры
+            self.__add_decoder(decoder)                       # пишем в список
 
     # todo Попробую пока функцию - фабрику, а потом нужно попробовать с метаклассами (а нужны ли они сдесь?)
     @classmethod
@@ -475,8 +481,18 @@ class XmlToObjTree:
         XmlToObjTree.classes[class_name] = cls  # Добавляем созданный класс в список
         return cls  # возвращаем класс
 
-    @staticmethod
-    def __get_obj(obj_element):
+    def __add_decoder(self, element):
+        """
+        Берет элемент-декодер и добавляет его в список функций (функция десериализуется)
+        :param element:
+        :return:
+        """
+        decoder_name = element.get("type")
+        decoder_funct = pickle.loads(base64.b64decode(element.text))  # todo !! протестировать насколько тормозит код
+                                                          # todo !!! так как на каждый объект прийдется делать pickle
+        self.__decoders[decoder_name] = decoder_funct
+
+    def __get_obj(self, obj_element):
         """
         Возвращает объект (с подобъектами - детьми) для данного элемента xml
         :param obj_element: class xml.etree.ElementTree.Element(tag, attrib={}, **extra)
@@ -492,6 +508,11 @@ class XmlToObjTree:
             prop_name = prop.attrib.pop("prop_name")  # Извлекаем атрибут имени свойства и удаляем из списка атрибутов
             prop_value = prop.text  # Значение свойства
             prop_attrs = prop.attrib  # атрибуты свойства
+            if 'type' in prop_attrs:                       # проверяем наличие атрибута 'type'
+                if prop_attrs['type'] in self.__decoders:  # а если он еще из пользовательских декодеров:
+                    decoder_funct = self.__decoders[prop_attrs['type']]
+                    prop_value = decoder_funct(prop_value)  # декодируем
+
             props[prop_name] = (prop_value, prop_attrs)  # запихиваем свойство объекта в словарь !!!!!!!!!!!!!!!!
             print(prop)
 
@@ -500,7 +521,7 @@ class XmlToObjTree:
 
         childs_element = obj_element.find("childs")  # находим элемент с вложенными объектами
         for child_obj in childs_element.findall("Object"):  # Обходим все дочерн объекты (но только для данного объекта)
-            obj.add_child(XmlToObjTree.__get_obj(child_obj))
+            obj.add_child(XmlToObjTree.__get_obj(self, child_obj))
 
         return obj
 
@@ -509,8 +530,8 @@ class XmlToObjTree:
         Возвращает дерево объектов из xml
         :return:
         """
-        et = xml_ET.fromstring(self.__xml_str)
-        obj = XmlToObjTree.__get_obj(et)
+        first_obj = self.__root_element.find("Object")
+        obj = XmlToObjTree.__get_obj(self, first_obj)
         return obj
 
 ##########################################################################
