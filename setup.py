@@ -1,3 +1,6 @@
+"""
+https://habr.com/ru/company/skillfactory/blog/506352/
+"""
 from setuptools import setup, find_packages
 
 with open("README.md", "r") as readme_file:
