@@ -76,6 +76,11 @@ class SampleBaseClass(ObjTreeToXml):
     def classname(self):
         return self.__class__.__name__
 
+    @ObjTreeToXml.property
+    @property
+    def None__(self):
+        return None
+
 
 class ClassWithFilename(SampleBaseClass):
     def __init__(self, a, b, c, filename, writemode):
@@ -137,15 +142,6 @@ class ClassWithTown(SampleBaseClass):
 
 
 if __name__ == "__main__":
-    import pickle
-    pp = pickle.dumps(one_two_three)
-    funct = pickle.loads(pp)
-    funct("vot eto da !!!! TWO !!!")
-
-
-##############################
-##############################
-##############################
 
     filename_obj_readme = ClassWithFilename("a-a_readme", "b-b_readme", 98, "Readme.txt", 123456)
 

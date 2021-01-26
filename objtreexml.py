@@ -6,13 +6,11 @@ import pickle
 
 # todo !!! Для всех списков параметров проверить чтобы они не повторялись (чтобы дважды не совать в xml)
 
-# todo !!!     Если в атрибут сначала записывался дескриптор декоратора @property а за ним @"property.setter"
-# todo !!! то атрибуту уже передается новый дескриптор полученный от @"property.setter" а старый затирается
-# todo !!! и его старый вариант уже не доступен !!! (на его месте уже новый объект дескриптора!!!)
-# todo !!! ПОЭТОМУ или переделывать под сохранение в атрибутах моих дескрипторов (переделанных из @property)
-# todo !!! или искать другой вариант ((( или @"property.setter" тоже оборачивать в @ObjTreeToXml.property
+# todo !!!  для защиты свойств от перезаписи может лучше попробовать назначать свойствам свои дескрипторы, оборачивающие
+# todo дескрипторы property??
 
-# todo !!!! Добавить код сохранения данных xml в БД (PostgreSQL или другие)
+# todo !!! Проверять чтобы одно и тоже свойство не попало в списки свойств разного типа (кроме prop_to_obj_header и tag)
+# todo !!! запретить пользователь устанавливать теги prop_name и type
 
 """
 todo:
@@ -26,23 +24,22 @@ todo:
 6. xml ->
 """
 
-"""
-теги свойств prop_name и type - зарезервированы  (возможно еще и UID )!!!! 
-
-"""
-
 
 class ObjTreeToXml:
     """
       Подмешиваемый класс к классам, создающим связанные в древовидную структуру объекты. Добавляет возможность
     сохранения всего дерева в xml с указанием какие конкретно атрибуты объектов нужно сохранить. Атрибуты для
     сохранения в xml отмечаются декораторами для дескрипторов свойств объектов (@property) @ObjTreeToXml.property
-    @ObjTreeToXml.property_b64 @ObjTreeToXml.property_serialize_and_b64.
-      Для отметки свойства, используемого как уникальный идентификатор объекта - декоратор @ObjTreeToXml.prop_uid
-    Свойство с родителем - @ObjTreeToXml.prop_parent, свойство со списком детей - @ObjTreeToXml.prop_childs
+    @ObjTreeToXml.property_b64 @ObjTreeToXml.property_serialize_and_b64.....
+      Для отметки свойства со списком детей - @ObjTreeToXml.prop_childs
       Атрибут объекта в xml "Class" устанавливается автоматически по названию класса объекта.
       Каждому свойству можно добавить дополнительные атрибуты для записи в xml с использованием декоратора
-    @ObjTreeToXml.tags_for_prop
+    @ObjTreeToXml.tags_for_prop. Также, можно добавить дополнительные кодеки @ObjTreeToXml.property_encoded.
+      Каждому свойству можно устанавливать пользовательские теги. Нельзя устанавливать теги prop_name и type.
+
+
+      Если свойство класса помечено декоратором @ObjTreeToXml нужно быть увереным, что оно это свойство далее по коду
+    не перезапишется другим декоратором @property или @property.setter
     """
     __childs_for_xml = set()
     __prop_tags = {}
@@ -62,7 +59,7 @@ class ObjTreeToXml:
         """
         # Основной функциорнал по учету свойства
         assert isinstance(wrapped, property)  # Декоратор применяется только к свойствам (класс property)
-        ObjTreeToXml.__props_to_obj_header.add(wrapped)  # todo ! добавить проверку на единственность для ДАННОГО класса
+        ObjTreeToXml.__props_to_obj_header.add(wrapped)
 
         # Возвращает тоже свойство (ничего не меняет)
         return wrapped
@@ -76,7 +73,7 @@ class ObjTreeToXml:
         """
         # Основной функциорнал по учету свойства
         assert isinstance(wrapped, property)  # Декоратор применяется только к свойствам (класс property)
-        ObjTreeToXml.__childs_for_xml.add(wrapped)  # todo !! добавить проверку на единственность для ДАННОГО класса
+        ObjTreeToXml.__childs_for_xml.add(wrapped)
 
         # Возвращает тоже свойство (ничего не меняет)
         return wrapped
@@ -158,7 +155,6 @@ class ObjTreeToXml:
 
     @staticmethod
     def property_encoded(encoder=None, decoder=None):
-        # todo property разного типа не должны пересекаться. НУЖНО сделать проверки!
         """
             Декоратор определяющий свойство на сохранение в xml (оно обязательно должно быть @property) закодированный
         пользовательским кодеком.
@@ -222,9 +218,10 @@ class ObjTreeToXml:
                 attr_value = prop.fget(self)                        # извлекаем значение атрибута объекта
                 property_element = xml_ET.SubElement(xml_of_this_obj, "property")  # каждому свойству - элемент xml
                 property_element.set('prop_name', attr_name)
-                property_element.text = str(attr_value)
-                if type(attr_value) != str:                         # Тип параметра указывается если он не строка
-                    property_element.set('type', str(type(attr_value)))
+                if attr_value:
+                    property_element.text = str(attr_value)
+                    if type(attr_value) != str:                         # Тип параметра указывается если он не строка
+                        property_element.set('type', str(type(attr_value)))
 
                 # Для свойства ищем теги и добавляем к элементу
                 ObjTreeToXml.__add_prop_tag_to_element(property_element, prop)
