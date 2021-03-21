@@ -209,7 +209,7 @@ class ObjTreeToXml:
         for prop, attr_name in ObjTreeToXml.__iter_props(self):  # Итерируем по свойствам (property) объекта
             if prop in ObjTreeToXml.__props_to_obj_header:       # если это свойство в списке для внесения в Obj header
                 attr_value = prop.fget(self)                     # извлекаем значение атрибута объекта
-                xml_of_this_obj.set(attr_name, attr_value)
+                xml_of_this_obj.set(attr_name, str(attr_value))
 
         # enumerate and adding properties
         # xml_obj_properties = xml_ET.SubElement(xml_of_this_obj, "properties")
